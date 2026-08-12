@@ -76,7 +76,7 @@ class CashScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 IconButton.outlined(
-                  tooltip: 'Xarajatlar hisoboti (oyma-oy)',
+                  tooltip: 'Oylik hisobot (savdo, foyda, xarajatlar)',
                   icon: const Icon(Icons.bar_chart_outlined),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(

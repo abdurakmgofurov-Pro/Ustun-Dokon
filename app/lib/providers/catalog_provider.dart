@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/supabase_service.dart';
 import '../models/models.dart';
@@ -26,6 +27,11 @@ class CatalogController {
     try {
       await sb.from('categories').insert({'name': name});
       return null;
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') {
+        return '"$name" nomli kategoriya allaqachon mavjud';
+      }
+      return 'Kategoriya qo\'shishda xatolik: ${e.message}';
     } catch (e) {
       return 'Kategoriya qo\'shishda xatolik: $e';
     }

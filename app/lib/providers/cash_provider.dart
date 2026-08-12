@@ -46,6 +46,64 @@ class ExpenseCategoryTotal {
   const ExpenseCategoryTotal({required this.category, required this.amount});
 }
 
+/// Tanlangan oy uchun savdo/tannarx/xarajat/foyda xulosasi.
+class MonthlyProfitSummary {
+  final double revenue;
+  final double cost;
+  final double expenses;
+  const MonthlyProfitSummary({
+    required this.revenue,
+    required this.cost,
+    required this.expenses,
+  });
+
+  /// Yalpi foyda: savdo summasidan tovarlar tannarxini ayirish.
+  double get grossProfit => revenue - cost;
+
+  /// Sof foyda: yalpi foydadan boshqa xarajatlarni (ijara, ish haqi va h.k.) ayirish.
+  double get netProfit => grossProfit - expenses;
+}
+
+/// Tanlangan oydagi (bekor qilinmagan) savdolar bo'yicha jami sotuv,
+/// tovarlar tannarxi (sale_items.cost — sotilgan paytdagi kirim narxi)
+/// va shu oydagi rashodlarni hisoblab, foyda xulosasini qaytaradi.
+final profitReportProvider = FutureProvider<MonthlyProfitSummary>((ref) async {
+  final month = ref.watch(expenseReportMonthProvider);
+  final nextMonth = DateTime(month.year, month.month + 1, 1);
+
+  final salesData = await sb
+      .from('sales')
+      .select('total, sale_items(qty, cost)')
+      .gte('created_at', month.toIso8601String())
+      .lt('created_at', nextMonth.toIso8601String())
+      .eq('is_cancelled', false);
+
+  double revenue = 0;
+  double cost = 0;
+  for (final row in (salesData as List)) {
+    final map = row as Map<String, dynamic>;
+    revenue += (map['total'] as num).toDouble();
+    final items = (map['sale_items'] as List?) ?? const [];
+    for (final it in items) {
+      final m = it as Map<String, dynamic>;
+      cost += (m['qty'] as num).toDouble() * (m['cost'] as num).toDouble();
+    }
+  }
+
+  final expensesData = await sb
+      .from('cash_transactions')
+      .select('amount')
+      .eq('type', 'rashod')
+      .gte('created_at', month.toIso8601String())
+      .lt('created_at', nextMonth.toIso8601String());
+  double expenses = 0;
+  for (final row in (expensesData as List)) {
+    expenses += ((row as Map<String, dynamic>)['amount'] as num).toDouble();
+  }
+
+  return MonthlyProfitSummary(revenue: revenue, cost: cost, expenses: expenses);
+});
+
 /// Tanlangan oydagi rashodlarni kategoriya bo'yicha guruhlab, kamayish
 /// tartibida qaytaradi.
 final expenseReportProvider =

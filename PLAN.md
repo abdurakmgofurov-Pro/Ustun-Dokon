@@ -116,9 +116,17 @@ qo'shildi:
   Supabase'dagi `app_error_logs` jadvaliga yozib boradi (global handlerlar +
   kirish/savdo/printer/OCR kontekstli loglar), faqat admin o'qiy oladi
   (`supabase/error_logs.sql`, `services/error_log_service.dart`)
-- **Xarajatlar hisoboti (oyma-oy)** — Kassa ekranidan alohida, faqat
-  rashodlarni kategoriya bo'yicha va oy-oy taqqoslab ko'rsatadigan hisobot
-  (`screens/cash/expense_report_screen.dart`)
+- **Oylik hisobot (savdo, tannarx, foyda, xarajatlar)** — Kassa ekranidan
+  alohida, oyma-oy (oldinga/orqaga) ko'rish mumkin bo'lgan to'liq hisobot:
+  jami sotuv, tovarlar tannarxi, yalpi/sof foyda va rashodlarning
+  kategoriya bo'yicha taqsimoti (`screens/cash/expense_report_screen.dart`,
+  `providers/cash_provider.dart`). Foydani hisoblash uchun `sale_items`
+  jadvaliga sotilgan paytdagi tannarxni saqlaydigan `cost` ustuni qo'shildi
+  (`supabase/profit_report.sql`) — mavjud Supabase loyihasida bu faylni
+  SQL Editor orqali ishga tushirish kerak.
+- **Kategoriya qo'shishda tushunarli xato xabari** — takroriy nom
+  kiritilsa ("allaqachon mavjud") aniq ko'rsatiladi, ilgari sukut saqlab
+  hech narsa ko'rsatmasdi
 
 ## Eslatmalar
 - Ish kompyuterida hech qanday dev vosita o'rnatilmagan edi — Git, OpenJDK 17,

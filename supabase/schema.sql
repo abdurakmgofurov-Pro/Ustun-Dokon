@@ -96,7 +96,8 @@ create table public.sale_items (
   sale_id bigint not null references public.sales(id) on delete cascade,
   product_id bigint not null references public.products(id),
   qty numeric(14,3) not null,
-  price numeric(14,2) not null,          -- savdo vaqtidagi narx (tarixiy)
+  price numeric(14,2) not null,          -- savdo vaqtidagi sotish narxi (tarixiy)
+  cost numeric(14,2) not null default 0, -- savdo vaqtidagi kirim narxi (tarixiy, foyda hisoblash uchun)
   created_at timestamptz not null default now()
 );
 
@@ -237,6 +238,7 @@ declare
   v_item jsonb;
   v_stock numeric(14,3);
   v_name text;
+  v_buy_price numeric(14,2);
 begin
   if not public.is_active_user() then
     raise exception 'Foydalanuvchi faol emas';
@@ -274,12 +276,17 @@ begin
 
   for v_item in select * from jsonb_array_elements(p_items)
   loop
-    insert into public.sale_items (sale_id, product_id, qty, price)
+    select buy_price into v_buy_price
+      from public.products
+     where id = (v_item->>'product_id')::bigint;
+
+    insert into public.sale_items (sale_id, product_id, qty, price, cost)
     values (
       v_sale_id,
       (v_item->>'product_id')::bigint,
       (v_item->>'qty')::numeric,
-      (v_item->>'price')::numeric
+      (v_item->>'price')::numeric,
+      coalesce(v_buy_price, 0)
     );
   end loop;
 
