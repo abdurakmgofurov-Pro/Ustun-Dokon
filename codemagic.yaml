@@ -53,7 +53,7 @@ workflows:
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
       - name: Paketlarni o'rnatish
         script: flutter pub get
-      - name: Android APK build
-        script: flutter build apk --release
+      - name: Android APK build (faqat arm64 — hajmni kamaytirish uchun)
+        script: flutter build apk --release --target-platform android-arm64
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
