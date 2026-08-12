@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/supabase_service.dart';
 import '../models/models.dart';
+import '../services/error_log_service.dart';
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   final data = await sb.from('categories').select().order('name');
@@ -27,12 +28,14 @@ class CatalogController {
     try {
       await sb.from('categories').insert({'name': name});
       return null;
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, st) {
       if (e.code == '23505') {
         return '"$name" nomli kategoriya allaqachon mavjud';
       }
+      errorLogService.log('add_category', e, stackTrace: st);
       return 'Kategoriya qo\'shishda xatolik: ${e.message}';
-    } catch (e) {
+    } catch (e, st) {
+      errorLogService.log('add_category', e, stackTrace: st);
       return 'Kategoriya qo\'shishda xatolik: $e';
     }
   }
@@ -65,7 +68,16 @@ class CatalogController {
         await sb.from('products').update(payload).eq('id', id);
       }
       return null;
-    } catch (e) {
+    } on PostgrestException catch (e, st) {
+      if (e.code == '23505') {
+        return 'Bu shtrix-kod bilan boshqa tovar allaqachon mavjud. '
+            'Tovarlar ro\'yxatida shu shtrix-kodni skanerlab, mavjud '
+            'tovarni tahrirlang.';
+      }
+      errorLogService.log('upsert_product', e, stackTrace: st);
+      return 'Mahsulotni saqlashda xatolik: ${e.message}';
+    } catch (e, st) {
+      errorLogService.log('upsert_product', e, stackTrace: st);
       return 'Mahsulotni saqlashda xatolik: $e';
     }
   }
@@ -74,7 +86,8 @@ class CatalogController {
     try {
       await sb.from('products').update({'is_active': isActive}).eq('id', id);
       return null;
-    } catch (e) {
+    } catch (e, st) {
+      errorLogService.log('set_product_active', e, stackTrace: st);
       return 'Xatolik: $e';
     }
   }
@@ -83,7 +96,8 @@ class CatalogController {
     try {
       await sb.from('products').delete().eq('id', id);
       return null;
-    } catch (e) {
+    } catch (e, st) {
+      errorLogService.log('delete_product', e, stackTrace: st);
       return 'O\'chirishda xatolik: $e';
     }
   }

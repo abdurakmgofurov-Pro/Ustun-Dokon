@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/stat_card.dart';
+import '../cash/expense_report_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -16,6 +18,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dataAsync = ref.watch(dashboardProvider);
     final extras = ref.watch(dashboardExtrasProvider);
+    final isAdmin = ref.watch(isAdminProvider);
 
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(dashboardProvider),
@@ -45,24 +48,34 @@ class DashboardScreen extends ConsumerWidget {
                       subtitle: '${data.todayReceipts} ta chek',
                       icon: Icons.point_of_sale,
                       color: AppColors.primary,
+                      onTap: () => context.go('/sales-history'),
                     ),
                     StatCard(
                       title: 'Bugungi foyda',
                       value: formatSum(data.todayProfit),
                       icon: Icons.trending_up,
                       color: Colors.teal,
+                      onTap: isAdmin
+                          ? () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const ExpenseReportScreen()),
+                              )
+                          : null,
                     ),
                     StatCard(
                       title: 'Umumiy qarzdorlik',
                       value: formatSum(extras.totalDebt),
                       icon: Icons.people,
                       color: AppColors.warning,
+                      onTap: () => context.go('/debtors'),
                     ),
                     StatCard(
                       title: 'Kam qolgan tovarlar',
                       value: '${extras.lowStock.length} ta',
                       icon: Icons.warning_amber,
                       color: AppColors.danger,
+                      onTap: () => context.go('/products'),
                     ),
                   ],
                 );

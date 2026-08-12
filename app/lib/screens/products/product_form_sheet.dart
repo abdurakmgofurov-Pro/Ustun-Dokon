@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -235,7 +236,28 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
                             onPressed: () async {
                               final code = await showBarcodeScanner(context,
                                   title: 'Shtrix-kodni skanerlash');
-                              if (code == null) return;
+                              if (code == null || !mounted) return;
+
+                              // Bu shtrix-kod boshqa (yoki shu) tovarga
+                              // allaqachon tegishli bo'lsa — yangi tovar
+                              // sifatida saqlashga urinib, unique
+                              // xatoga uchramaslik uchun to'g'ridan-to'g'ri
+                              // o'sha tovarni tahrirlash rejimiga o'tamiz.
+                              final products =
+                                  ref.read(productsProvider).valueOrNull ??
+                                      [];
+                              final existing = products
+                                  .where((p) =>
+                                      p.barcode == code &&
+                                      p.id != widget.product?.id)
+                                  .firstOrNull;
+                              if (existing != null) {
+                                Navigator.of(context).pop();
+                                showProductFormSheet(context,
+                                    product: existing);
+                                return;
+                              }
+
                               _barcode.text = code;
                               if (_name.text.trim().isNotEmpty) return;
                               final found =
