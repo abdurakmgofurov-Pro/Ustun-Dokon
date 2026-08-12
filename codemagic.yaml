@@ -8,9 +8,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      vars:
-        SUPABASE_URL: $SUPABASE_URL
-        SUPABASE_ANON_KEY: $SUPABASE_ANON_KEY
+      groups:
+        - supabase_credentials
     triggering:
       events:
         - push
@@ -38,9 +37,8 @@ workflows:
     working_directory: app
     environment:
       flutter: stable
-      vars:
-        SUPABASE_URL: $SUPABASE_URL
-        SUPABASE_ANON_KEY: $SUPABASE_ANON_KEY
+      groups:
+        - supabase_credentials
     triggering:
       events:
         - push
