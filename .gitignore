@@ -1,0 +1,8 @@
+# Build chiqishi (APK/AAB) — juda katta, Git'ga kerak emas
+*.apk
+*.aab
+*.ipa
+
+# OS
+.DS_Store
+Thumbs.db
