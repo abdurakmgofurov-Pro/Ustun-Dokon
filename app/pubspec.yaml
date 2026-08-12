@@ -43,7 +43,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   collection: ^1.19.0
   shared_preferences: ^2.5.5
-  mobile_scanner: ^6.0.2
+  mobile_scanner: ^7.4.0
   permission_handler: ^11.3.1
   esc_pos_utils_plus: ^2.0.4
   print_bluetooth_thermal: ^1.2.2

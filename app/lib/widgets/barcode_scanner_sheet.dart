@@ -182,7 +182,7 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
           MobileScanner(
             controller: _controller,
             onDetect: _onDetect,
-            errorBuilder: (context, error, child) => _ScannerError(
+            errorBuilder: (context, error) => _ScannerError(
               error: error,
               retrying: _retrying,
               onRetry: _retryStart,
@@ -254,6 +254,8 @@ class _ScannerError extends StatefulWidget {
       case MobileScannerErrorCode.controllerAlreadyInitialized:
       case MobileScannerErrorCode.controllerUninitialized:
       case MobileScannerErrorCode.controllerDisposed:
+      case MobileScannerErrorCode.controllerInitializing:
+      case MobileScannerErrorCode.controllerNotAttached:
         return 'Kamera holati bilan bog\'liq nosozlik. "Qayta urinish"ni bosing.';
       case MobileScannerErrorCode.genericError:
         return 'Kamerani ochib bo\'lmadi (qurilma xatosi). Boshqa ilova kamerani band qilmaganini tekshirib, qayta urinib ko\'ring.';
