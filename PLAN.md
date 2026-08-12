@@ -106,6 +106,19 @@ qo'shildi:
 - **Savdoni bekor qilishda qoldiqni to'g'ri tiklash** — alohida tuzatish
   (`supabase/fix_cancel_sale.sql`)
 - **Umumiy bo'sh-holat komponenti (empty state)** — `widgets/empty_state.dart`
+- **iOS qo'llab-quvvatlash (Codemagic + Sideloadly orqali bepul)** — `app/ios`,
+  `codemagic.yaml` (ios-workflow/android-workflow), `Info.plist`ga kamera/
+  galereya/Bluetooth ruxsat matnlari, iOS deployment target 15.5
+  (`google_mlkit_text_recognition` talabi), `mobile_scanner`ni 7.x'ga
+  yangilash (iOS'da Google MLKit o'rniga Apple Vision — versiyalar
+  ziddiyatini yechish uchun)
+- **Masofaviy xato jurnali (error logging)** — ilovadagi xatoliklarni
+  Supabase'dagi `app_error_logs` jadvaliga yozib boradi (global handlerlar +
+  kirish/savdo/printer/OCR kontekstli loglar), faqat admin o'qiy oladi
+  (`supabase/error_logs.sql`, `services/error_log_service.dart`)
+- **Xarajatlar hisoboti (oyma-oy)** — Kassa ekranidan alohida, faqat
+  rashodlarni kategoriya bo'yicha va oy-oy taqqoslab ko'rsatadigan hisobot
+  (`screens/cash/expense_report_screen.dart`)
 
 ## Eslatmalar
 - Ish kompyuterida hech qanday dev vosita o'rnatilmagan edi — Git, OpenJDK 17,

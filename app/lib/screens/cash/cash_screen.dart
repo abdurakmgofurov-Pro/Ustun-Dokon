@@ -9,6 +9,7 @@ import '../../providers/sales_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/stat_card.dart';
 import 'add_transaction_sheet.dart';
+import 'expense_report_screen.dart';
 
 class CashScreen extends ConsumerWidget {
   const CashScreen({super.key});
@@ -43,29 +44,46 @@ class CashScreen extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.calendar_today, size: 18),
-              label: Text(
-                  '${formatDate(filter.from)} — ${formatDate(filter.to.subtract(const Duration(days: 1)))}'),
-              onPressed: () async {
-                final range = await showDateRangePicker(
-                  context: context,
-                  firstDate: DateTime(2024),
-                  lastDate: DateTime.now().add(const Duration(days: 1)),
-                  initialDateRange: DateTimeRange(
-                      start: filter.from,
-                      end: filter.to.subtract(const Duration(days: 1))),
-                );
-                if (range != null) {
-                  ref.read(cashFilterProvider.notifier).state = SalesFilter(
-                    from: DateTime(
-                        range.start.year, range.start.month, range.start.day),
-                    to: DateTime(range.end.year, range.end.month, range.end.day)
-                        .add(const Duration(days: 1)),
-                  );
-                }
-              },
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_today, size: 18),
+                    label: Text(
+                        '${formatDate(filter.from)} — ${formatDate(filter.to.subtract(const Duration(days: 1)))}'),
+                    onPressed: () async {
+                      final range = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2024),
+                        lastDate: DateTime.now().add(const Duration(days: 1)),
+                        initialDateRange: DateTimeRange(
+                            start: filter.from,
+                            end: filter.to.subtract(const Duration(days: 1))),
+                      );
+                      if (range != null) {
+                        ref.read(cashFilterProvider.notifier).state =
+                            SalesFilter(
+                          from: DateTime(range.start.year, range.start.month,
+                              range.start.day),
+                          to: DateTime(range.end.year, range.end.month,
+                                  range.end.day)
+                              .add(const Duration(days: 1)),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  tooltip: 'Xarajatlar hisoboti (oyma-oy)',
+                  icon: const Icon(Icons.bar_chart_outlined),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const ExpenseReportScreen()),
+                  ),
+                ),
+              ],
             ),
           ),
           Padding(

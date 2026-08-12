@@ -128,6 +128,12 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
     if (value == null || value.isEmpty) return;
 
     if (!widget.isContinuous) {
+      // Ekranni yopishdan oldin kamerani to'xtatamiz — aks holda iOS'da
+      // kamera preview qatlami tozalanmay qolib, orqaga qaytganda ekran
+      // qorayib qolishi mumkin.
+      setState(() => _busy = true);
+      await _controller.stop();
+      if (!mounted) return;
       Navigator.of(context).pop(value);
       return;
     }
@@ -145,9 +151,20 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
     });
   }
 
+  Future<void> _closeViaBack() async {
+    await _controller.stop();
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _closeViaBack();
+      },
+      child: Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -169,7 +186,11 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
           ),
           if (widget.isContinuous)
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () async {
+                await _controller.stop();
+                if (!mounted) return;
+                Navigator.of(context).pop();
+              },
               child: const Text('Tayyor',
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
@@ -230,6 +251,7 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -34,6 +34,43 @@ final cashSummaryProvider = Provider<({double kirim, double rashod})>((ref) {
   return (kirim: kirim, rashod: rashod);
 });
 
+/// Xarajatlar hisoboti ekranida tanlangan oy (har doim oyning 1-kuni).
+final expenseReportMonthProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, 1);
+});
+
+class ExpenseCategoryTotal {
+  final String category;
+  final double amount;
+  const ExpenseCategoryTotal({required this.category, required this.amount});
+}
+
+/// Tanlangan oydagi rashodlarni kategoriya bo'yicha guruhlab, kamayish
+/// tartibida qaytaradi.
+final expenseReportProvider =
+    FutureProvider<List<ExpenseCategoryTotal>>((ref) async {
+  final month = ref.watch(expenseReportMonthProvider);
+  final nextMonth = DateTime(month.year, month.month + 1, 1);
+  final data = await sb
+      .from('cash_transactions')
+      .select()
+      .eq('type', 'rashod')
+      .gte('created_at', month.toIso8601String())
+      .lt('created_at', nextMonth.toIso8601String());
+
+  final totals = <String, double>{};
+  for (final e in (data as List)) {
+    final tx = CashTransaction.fromMap(e as Map<String, dynamic>);
+    totals[tx.category] = (totals[tx.category] ?? 0) + tx.amount;
+  }
+  final result = totals.entries
+      .map((e) => ExpenseCategoryTotal(category: e.key, amount: e.value))
+      .toList()
+    ..sort((a, b) => b.amount.compareTo(a.amount));
+  return result;
+});
+
 const expenseCategories = [
   'ijaraq',
   'ish_haqi',

@@ -286,6 +286,7 @@ class _CategoriesTab extends ConsumerStatefulWidget {
 
 class _CategoriesTabState extends ConsumerState<_CategoriesTab> {
   final _controller = TextEditingController();
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -295,10 +296,30 @@ class _CategoriesTabState extends ConsumerState<_CategoriesTab> {
 
   Future<void> _add() async {
     final name = _controller.text.trim();
-    if (name.isEmpty) return;
-    await ref.read(catalogControllerProvider).addCategory(name);
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Kategoriya nomini kiriting'),
+        backgroundColor: AppColors.danger,
+      ));
+      return;
+    }
+    setState(() => _saving = true);
+    final error = await ref.read(catalogControllerProvider).addCategory(name);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error),
+        backgroundColor: AppColors.danger,
+      ));
+      return;
+    }
     _controller.clear();
     ref.invalidate(categoriesProvider);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('"$name" kategoriyasi qo\'shildi'),
+      backgroundColor: AppColors.primary,
+    ));
   }
 
   @override
@@ -319,7 +340,17 @@ class _CategoriesTabState extends ConsumerState<_CategoriesTab> {
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton.filled(onPressed: _add, icon: const Icon(Icons.add)),
+              IconButton.filled(
+                onPressed: _saving ? null : _add,
+                icon: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.add),
+              ),
             ],
           ),
         ),
