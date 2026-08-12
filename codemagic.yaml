@@ -33,7 +33,7 @@ workflows:
   android-workflow:
     name: Ustun Dokon Android
     max_build_duration: 30
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     working_directory: app
     environment:
       flutter: stable
