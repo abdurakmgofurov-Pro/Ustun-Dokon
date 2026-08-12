@@ -6,7 +6,11 @@ class ParsedInvoiceLine {
   final String name;
   final double? qty;
   final double? price;
-  ParsedInvoiceLine({required this.name, this.qty, this.price});
+  /// OCR aniqlagan asl matn — foydalaniuvchi qiymatlarni tekshirib,
+  /// noto'g'ri joylashgan bo'lsa tez tuzatishi uchun ko'rsatiladi.
+  final String rawText;
+  ParsedInvoiceLine(
+      {required this.name, this.qty, this.price, required this.rawText});
 }
 
 /// Nakladnoy (tovar-transport hujjati) suratidan matnni telefonning
@@ -100,6 +104,11 @@ class InvoiceOcrService {
         if (v != null) numbers.add(v);
       }
 
+      // Raqami umuman yo'q qator — bu haqiqiy tovar qatori emas (masalan
+      // manzil, sarlavha yoki izoh matni), ro'yxatni chalkashtirmaslik
+      // uchun o'tkazib yuboramiz.
+      if (numbers.isEmpty) continue;
+
       // Matndan raqamlarni olib tashlab, qolganini nom sifatida olamiz.
       var name = trimmed;
       for (final m in matches.reversed) {
@@ -134,7 +143,8 @@ class InvoiceOcrService {
         price = numbers[0];
       }
 
-      result.add(ParsedInvoiceLine(name: name, qty: qty, price: price));
+      result.add(ParsedInvoiceLine(
+          name: name, qty: qty, price: price, rawText: trimmed));
     }
 
     return result;

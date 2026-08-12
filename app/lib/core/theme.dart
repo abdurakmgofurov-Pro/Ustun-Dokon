@@ -195,6 +195,15 @@ ThemeData _base(
       backgroundColor: surface,
       indicatorColor: scheme.primary.withValues(alpha: 0.15),
       surfaceTintColor: Colors.transparent,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return TextStyle(
+          fontSize: 11,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? scheme.primary : textMuted,
+          overflow: TextOverflow.ellipsis,
+        );
+      }),
     ),
     listTileTheme: ListTileThemeData(iconColor: textMuted, textColor: text),
     dividerTheme: DividerThemeData(

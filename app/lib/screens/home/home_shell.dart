@@ -14,11 +14,11 @@ class _NavItem {
 }
 
 const _navItems = [
-  _NavItem('/', Icons.dashboard_outlined, 'Bosh sahifa'),
+  _NavItem('/', Icons.dashboard_outlined, 'Asosiy'),
   _NavItem('/pos', Icons.point_of_sale_outlined, 'Savdo'),
   _NavItem('/sales-history', Icons.receipt_long_outlined, 'Cheklar'),
   _NavItem('/products', Icons.inventory_2_outlined, 'Tovarlar'),
-  _NavItem('/debtors', Icons.people_outline, 'Qarzdorlar'),
+  _NavItem('/debtors', Icons.people_outline, 'Qarzlar'),
   _NavItem('/cash', Icons.account_balance_wallet_outlined, 'Kassa',
       adminOnly: true),
   _NavItem('/settings', Icons.settings_outlined, 'Sozlamalar',

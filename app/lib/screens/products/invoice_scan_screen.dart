@@ -28,8 +28,15 @@ class _RowDraft {
   final TextEditingController price;
   int? matchedProductId;
   String? barcode;
-  _RowDraft({String name = '', String qty = '', String price = '', this.barcode})
-      : name = TextEditingController(text: name),
+  /// OCR aniqlagan asl matn (agar shtrix-kod/qo'lda qo'shilgan bo'lsa — bo'sh).
+  final String rawText;
+  _RowDraft({
+    String name = '',
+    String qty = '',
+    String price = '',
+    this.barcode,
+    this.rawText = '',
+  })  : name = TextEditingController(text: name),
         qty = TextEditingController(text: qty),
         price = TextEditingController(text: price);
 
@@ -104,6 +111,7 @@ class _InvoiceScanScreenState extends ConsumerState<InvoiceScanScreen> {
         name: line.name,
         qty: line.qty != null ? formatQty(line.qty!) : '',
         price: line.price != null ? line.price!.toStringAsFixed(0) : '',
+        rawText: line.rawText,
       );
       if (match.isNotEmpty) draft.matchedProductId = match.first.id;
       setState(() => _rows.add(draft));
@@ -381,7 +389,15 @@ class _InvoiceScanScreenState extends ConsumerState<InvoiceScanScreen> {
                                   const InputDecoration(labelText: 'Soni'),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          IconButton(
+                            tooltip: 'Soni va narxni almashtirish',
+                            icon: const Icon(Icons.swap_horiz),
+                            onPressed: () => setState(() {
+                              final tmp = r.qty.text;
+                              r.qty.text = r.price.text;
+                              r.price.text = tmp;
+                            }),
+                          ),
                           Expanded(
                             child: TextField(
                               controller: r.price,
@@ -393,6 +409,20 @@ class _InvoiceScanScreenState extends ConsumerState<InvoiceScanScreen> {
                           ),
                         ],
                       ),
+                      if (r.rawText.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'OCR: ${r.rawText}',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 6),
                       Align(
                         alignment: Alignment.centerLeft,
