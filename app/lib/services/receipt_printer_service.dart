@@ -1,6 +1,8 @@
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'error_log_service.dart';
+
 class PrinterDevice {
   final String name;
   final String mac;
@@ -59,30 +61,40 @@ class ReceiptPrinterService {
       return 'Printer tanlanmagan. Sozlamalar > Chek bo\'limidan tanlang.';
     }
 
-    final granted = await ensurePermission();
-    if (!granted) {
-      return 'Bluetooth ruxsati berilmagan. Qayta urinib ko\'ring.';
-    }
-
-    final enabled = await isBluetoothEnabled();
-    if (!enabled) {
-      return 'Bluetooth o\'chirilgan. Uni yoqib, qayta urinib ko\'ring.';
-    }
-
-    final alreadyConnected = await PrintBluetoothThermal.connectionStatus;
-    if (!alreadyConnected) {
-      final connected = await PrintBluetoothThermal.connect(
-          macPrinterAddress: selected.mac);
-      if (!connected) {
-        return 'Printerga ulanib bo\'lmadi ("${selected.name}"). Printer yoqilgan va yaqinligini tekshiring.';
+    try {
+      final granted = await ensurePermission();
+      if (!granted) {
+        errorLogService.log('printer_bytes', 'Bluetooth permission rad etildi');
+        return 'Bluetooth ruxsati berilmagan. Qayta urinib ko\'ring.';
       }
-    }
 
-    final sent = await PrintBluetoothThermal.writeBytes(bytes);
-    if (!sent) {
-      return 'Chek chiqarishda xatolik yuz berdi.';
+      final enabled = await isBluetoothEnabled();
+      if (!enabled) {
+        return 'Bluetooth o\'chirilgan. Uni yoqib, qayta urinib ko\'ring.';
+      }
+
+      final alreadyConnected = await PrintBluetoothThermal.connectionStatus;
+      if (!alreadyConnected) {
+        final connected = await PrintBluetoothThermal.connect(
+            macPrinterAddress: selected.mac);
+        if (!connected) {
+          errorLogService.log('printer_bytes', 'Printerga ulanib bo\'lmadi',
+              extra: {'printer_name': selected.name});
+          return 'Printerga ulanib bo\'lmadi ("${selected.name}"). Printer yoqilgan va yaqinligini tekshiring.';
+        }
+      }
+
+      final sent = await PrintBluetoothThermal.writeBytes(bytes);
+      if (!sent) {
+        errorLogService.log('printer_bytes', 'writeBytes false qaytardi');
+        return 'Chek chiqarishda xatolik yuz berdi.';
+      }
+      return null;
+    } catch (e, st) {
+      errorLogService.log('printer_bytes', e,
+          stackTrace: st, extra: {'printer_name': selected.name});
+      return 'Chek chiqarishda kutilmagan xatolik: $e';
     }
-    return null;
   }
 }
 

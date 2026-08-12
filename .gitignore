@@ -1,7 +1,9 @@
-# Build chiqishi (APK/AAB) — juda katta, Git'ga kerak emas
+# Build chiqishi (APK/AAB/IPA) — juda katta, Git'ga kerak emas
 *.apk
 *.aab
 *.ipa
+*.ipa.zip
+/Payload/
 
 # OS
 .DS_Store

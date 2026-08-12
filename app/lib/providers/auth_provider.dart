@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/supabase_service.dart';
 import '../models/models.dart';
+import '../services/error_log_service.dart';
 
 final authStateProvider = StreamProvider<AuthState>((ref) {
   return sb.auth.onAuthStateChange;
@@ -29,9 +30,11 @@ class AuthController {
       await sb.auth
           .signInWithPassword(email: email.trim(), password: password);
       return null;
-    } on AuthException catch (e) {
+    } on AuthException catch (e, st) {
+      errorLogService.log('auth_signin', e, stackTrace: st);
       return e.message;
-    } catch (e) {
+    } catch (e, st) {
+      errorLogService.log('auth_signin', e, stackTrace: st);
       return 'Kirishda xatolik yuz berdi: $e';
     }
   }

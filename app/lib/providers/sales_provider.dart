@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/supabase_service.dart';
 import '../models/models.dart';
+import '../services/error_log_service.dart';
 
 class SalesFilter {
   final DateTime from;
@@ -88,7 +89,11 @@ class SalesController {
             .toList(),
       });
       return CheckoutResult(saleId: saleId as int?);
-    } catch (e) {
+    } catch (e, st) {
+      errorLogService.log('pos_checkout', e, stackTrace: st, extra: {
+        'payment_type': paymentType.name,
+        'items_count': cart.length,
+      });
       return CheckoutResult(
           error: e.toString().replaceFirst('Exception: ', ''));
     }
@@ -98,7 +103,9 @@ class SalesController {
     try {
       await sb.from('sales').update({'is_cancelled': true}).eq('id', saleId);
       return null;
-    } catch (e) {
+    } catch (e, st) {
+      errorLogService.log('sales_cancel', e,
+          stackTrace: st, extra: {'sale_id': saleId});
       return 'Bekor qilishda xatolik: $e';
     }
   }

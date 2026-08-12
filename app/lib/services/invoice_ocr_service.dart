@@ -1,5 +1,7 @@
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
+import 'error_log_service.dart';
+
 class ParsedInvoiceLine {
   final String name;
   final double? qty;
@@ -25,8 +27,14 @@ class InvoiceOcrService {
   };
 
   Future<List<String>> recognizeRows(String imagePath) async {
-    final input = InputImage.fromFilePath(imagePath);
-    final result = await _recognizer.processImage(input);
+    final InputImage input = InputImage.fromFilePath(imagePath);
+    final RecognizedText result;
+    try {
+      result = await _recognizer.processImage(input);
+    } catch (e, st) {
+      errorLogService.log('invoice_ocr', e, stackTrace: st);
+      rethrow;
+    }
 
     final lines = <({double top, double bottom, double left, String text})>[];
     for (final block in result.blocks) {
