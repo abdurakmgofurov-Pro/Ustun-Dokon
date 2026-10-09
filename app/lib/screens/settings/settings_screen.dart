@@ -114,21 +114,21 @@ class _EmployeesTab extends ConsumerWidget {
                                   } else if (v == 'delete') {
                                     final confirmed = await showDialog<bool>(
                                       context: context,
-                                      builder: (_) => AlertDialog(
+                                      builder: (dialogContext) => AlertDialog(
                                         title: const Text('Xodimni o\'chirish'),
                                         content: Text(
                                             '"${p.fullName}" hisobini butunlay o\'chirmoqchimisiz? Bu amalni orqaga qaytarib bo\'lmaydi.'),
                                         actions: [
                                           TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context, false),
+                                              onPressed: () => Navigator.pop(
+                                                  dialogContext, false),
                                               child: const Text('Bekor qilish')),
                                           FilledButton(
                                               style: FilledButton.styleFrom(
                                                   backgroundColor:
                                                       AppColors.danger),
-                                              onPressed: () =>
-                                                  Navigator.pop(context, true),
+                                              onPressed: () => Navigator.pop(
+                                                  dialogContext, true),
                                               child: const Text('O\'chirish')),
                                         ],
                                       ),
@@ -322,6 +322,78 @@ class _CategoriesTabState extends ConsumerState<_CategoriesTab> {
     ));
   }
 
+  Future<void> _editCategory(Category category) async {
+    final controller = TextEditingController(text: category.name);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Kategoriyani tahrirlash'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Kategoriya nomi'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Bekor qilish')),
+          FilledButton(
+              onPressed: () =>
+                  Navigator.pop(dialogContext, controller.text.trim()),
+              child: const Text('Saqlash')),
+        ],
+      ),
+    );
+    if (newName == null || newName.isEmpty || !mounted) return;
+    final error = await ref
+        .read(catalogControllerProvider)
+        .updateCategory(category.id, newName);
+    if (!mounted) return;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error),
+        backgroundColor: AppColors.danger,
+      ));
+      return;
+    }
+    ref.invalidate(categoriesProvider);
+  }
+
+  Future<void> _deleteCategory(Category category) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Kategoriyani o\'chirish'),
+        content: Text(
+            '"${category.name}" kategoriyasini o\'chirmoqchimisiz? Bu kategoriyadagi tovarlar "Kategoriyasiz" bo\'lib qoladi.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Bekor qilish')),
+          FilledButton(
+              style:
+                  FilledButton.styleFrom(backgroundColor: AppColors.danger),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('O\'chirish')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final error = await ref
+        .read(catalogControllerProvider)
+        .deleteCategory(category.id);
+    if (!mounted) return;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error),
+        backgroundColor: AppColors.danger,
+      ));
+      return;
+    }
+    ref.invalidate(categoriesProvider);
+    ref.invalidate(productsProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
@@ -363,7 +435,23 @@ class _CategoriesTabState extends ConsumerState<_CategoriesTab> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: categories.length,
               itemBuilder: (context, i) => Card(
-                child: ListTile(title: Text(categories[i].name)),
+                child: ListTile(
+                  title: Text(categories[i].name),
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (v) async {
+                      if (v == 'edit') {
+                        await _editCategory(categories[i]);
+                      } else if (v == 'delete') {
+                        await _deleteCategory(categories[i]);
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'edit', child: Text('Tahrirlash')),
+                      PopupMenuItem(
+                          value: 'delete', child: Text('O\'chirish')),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

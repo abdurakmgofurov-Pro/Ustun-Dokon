@@ -213,18 +213,18 @@ class _SaleTile extends ConsumerWidget {
                           onPressed: () async {
                             final confirmed = await showDialog<bool>(
                               context: context,
-                              builder: (_) => AlertDialog(
+                              builder: (dialogContext) => AlertDialog(
                                 title: const Text('Chekni bekor qilish'),
                                 content: const Text(
                                     'Ushbu chek bekor qilinsa, tovar qoldig\'i qaytariladi. Davom etasizmi?'),
                                 actions: [
                                   TextButton(
                                       onPressed: () =>
-                                          Navigator.pop(context, false),
+                                          Navigator.pop(dialogContext, false),
                                       child: const Text('Yo\'q')),
                                   FilledButton(
                                       onPressed: () =>
-                                          Navigator.pop(context, true),
+                                          Navigator.pop(dialogContext, true),
                                       child: const Text('Ha, bekor qilish')),
                                 ],
                               ),

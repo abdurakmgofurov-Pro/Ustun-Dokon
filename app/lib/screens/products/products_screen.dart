@@ -159,17 +159,18 @@ class _ProductTile extends ConsumerWidget {
                   } else if (v == 'delete') {
                     final confirmed = await showDialog<bool>(
                       context: context,
-                      builder: (_) => AlertDialog(
+                      builder: (dialogContext) => AlertDialog(
                         title: const Text('Tovarni o\'chirish'),
                         content: Text(
                             '"${product.name}" tovarini o\'chirmoqchimisiz?'),
                         actions: [
                           TextButton(
                               onPressed: () =>
-                                  Navigator.pop(context, false),
+                                  Navigator.pop(dialogContext, false),
                               child: const Text('Bekor qilish')),
                           FilledButton(
-                              onPressed: () => Navigator.pop(context, true),
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, true),
                               child: const Text('O\'chirish')),
                         ],
                       ),

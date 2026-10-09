@@ -40,6 +40,32 @@ class CatalogController {
     }
   }
 
+  Future<String?> updateCategory(int id, String name) async {
+    try {
+      await sb.from('categories').update({'name': name}).eq('id', id);
+      return null;
+    } on PostgrestException catch (e, st) {
+      if (e.code == '23505') {
+        return '"$name" nomli kategoriya allaqachon mavjud';
+      }
+      errorLogService.log('update_category', e, stackTrace: st);
+      return 'Kategoriyani saqlashda xatolik: ${e.message}';
+    } catch (e, st) {
+      errorLogService.log('update_category', e, stackTrace: st);
+      return 'Kategoriyani saqlashda xatolik: $e';
+    }
+  }
+
+  Future<String?> deleteCategory(int id) async {
+    try {
+      await sb.from('categories').delete().eq('id', id);
+      return null;
+    } catch (e, st) {
+      errorLogService.log('delete_category', e, stackTrace: st);
+      return 'O\'chirishda xatolik: $e';
+    }
+  }
+
   Future<String?> upsertProduct({
     int? id,
     required String name,
