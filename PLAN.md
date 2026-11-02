@@ -127,9 +127,81 @@ qo'shildi:
 - **Kategoriya qo'shishda tushunarli xato xabari** — takroriy nom
   kiritilsa ("allaqachon mavjud") aniq ko'rsatiladi, ilgari sukut saqlab
   hech narsa ko'rsatmasdi
+- **Bepul iOS CI/CD quvuri (Apple Developer hisobisiz)** — GitHub → Codemagic
+  (`mac_mini_m2`, bepul tarif) → Sideloadly + bepul Apple ID orqali
+  sideloading; Codemagic API tokeni orqali build'larni ishga tushirish,
+  kuzatish va artefaktlarni (`.apk`, `Runner.app.zip` → `.ipa`) avtomatik
+  yuklab olish jarayoni o'rnatildi. `.ipa` Windows'da PowerShell
+  `System.IO.Compression.ZipFile` bilan forward-slash yo'llar saqlangan
+  holda qayta yig'iladi (`Compress-Archive` ishlamaydi — Sideloadly
+  backslash yo'llarni tushunmaydi).
+- **Shtrix-kod skanerdan keyingi qora ekran nosozligi tuzatildi** —
+  `mobile_scanner` 6.x→7.x'ga yangilangach (iOS'da Apple Vision), skaner
+  yopilishidan oldin kamerani to'xtatish (`_controller.stop()`) barcha
+  chiqish yo'llarida (aniqlanganda, "Tayyor" tugmasi, orqaga qaytish)
+  qo'shildi.
+- **Prihodda mavjud tovarga shtrix-kod skanerlanganda avtomatik tahrirlash
+  rejimi** — agar skanerlangan shtrix-kod boshqa tovarga tegishli bo'lsa,
+  yangi tovar sifatida saqlashga urinib unique-key xatosiga uchramasdan,
+  to'g'ridan-to'g'ri o'sha tovarning tahrirlash formasi ochiladi (qoldiqni
+  qo'lda yangilash uchun) — `screens/products/product_form_sheet.dart`
+- **Dashboard kartalari bosiladigan qilindi** — "Bugungi savdo" →
+  savdo tarixi, "Bugungi foyda" → oylik hisobot (faqat admin), "Umumiy
+  qarzdorlik" → qarzdorlar, "Kam qolgan tovarlar" → tovarlar ro'yxati
+  (`widgets/stat_card.dart`, `screens/dashboard/dashboard_screen.dart`)
+- **Pastki navigatsiya yorliqlari tuzatildi** — "Bosh sahifa" so'zi
+  burchakka sig'may qolayotgan edi; qisqartirildi ("Asosiy", "Qarzlar")
+  va shrift/rang uslubi aniqlashtirildi (`core/theme.dart`)
+- **Nakladnoy (faktura) OCR'ni takomillashtirish** — raqamsiz qatorlar
+  (mahsulot bo'lmagan matn) avtomatik chiqarib tashlanadi, har bir qatorda
+  original OCR matni ko'rsatiladi (tekshirish uchun), miqdor/narx
+  ustunlarini almashtirish tugmasi qo'shildi
+  (`services/invoice_ocr_service.dart`, `screens/products/invoice_scan_screen.dart`).
+  OCR'ni AI orqali yanada aniqlashtirish imkoniyati muhokama qilindi, ammo
+  hozircha bepul on-device variant saqlab qolindi — foydalanuvchi bu
+  masalani keyinroq qayta ko'rib chiqishni so'radi.
+- **Xato jurnali (`app_error_logs`) RLS tuzatildi va kengaytirildi** —
+  yozuv qo'shishda "row-level security" xatosi policy'larni aniq qayta
+  yaratish orqali bartaraf etildi (`supabase/fix_error_logs_rls.sql`);
+  kategoriya/tovar qo'shish-tahrirlash-o'chirish amallaridagi xatolar ham
+  endi shu jurnalga yoziladi (`providers/catalog_provider.dart`)
+- **Android avto-yangilanish** — ilova ochilganda GitHub Releases'dagi
+  so'nggi relizni (`vX.Y.Z`, `ustun-dokon.apk`) tekshiradi va yangisi bo'lsa
+  yuklab o'rnatishni taklif qiladi; Sozlamalar → Ilova'da qo'lda tekshirish
+  (`services/update_service.dart`, `widgets/update_gate.dart`). APK faqat shu
+  kompyuterda release kaliti bilan yig'iladi (Codemagic debug kaliti bilan
+  imzolaydi — yangilanish konflikt beradi).
+- **Sotuvchi RLS tuzatishlari** — `supabase/fix_seller_rls.sql` (mijozni
+  tahrirlash va savdoni to'g'ridan-to'g'ri INSERT qilishni yopadi, qarz
+  to'lovi summasi > 0); hali Supabase'da ishga tushirilmagan.
 
 ## Eslatmalar
 - Ish kompyuterida hech qanday dev vosita o'rnatilmagan edi — Git, OpenJDK 17,
   Android SDK command-line tools va Flutter SDK skript orqali o'rnatilmoqda.
 - Supabase — bepul (free tier) hisob orqali ishga tushiriladi; loyiha URL va
   anon key foydalanuvchidan so'raladi yoki birga sozlanadi.
+
+## Keyingi qadamlar (bajarilishi kutilmoqda)
+
+- **Yangi build'ni telefonda sinash** — so'nggi tuzatishlar (nakladnoy OCR,
+  navigatsiya yorliqlari, shtrix-kod dublikat, dashboard kartalari, xato
+  jurnali) kiritilgan `ustun-dokon.apk` va `Ustun_Dokon.ipa` hali
+  qurilmada to'liq tekshirilmagan — ayniqsa `app_error_logs`ga yozish endi
+  amalda ishlashini tasdiqlash kerak (avvalgi build bu tuzatishlardan
+  oldin yig'ilgan edi).
+- **`app_error_logs` jadvalidagi test yozuvlarni tozalash** — tekshiruv
+  paytida qo'shilgan `diagnostic_test_4/5/6` kabi sinov qatorlarini admin
+  Supabase Table Editor orqali o'chirishi mumkin.
+- **Faktura OCR — AI asosidagi aniqlashtirish** — muhokama qilingan, ammo
+  hozircha amalga oshirilmagan (foydalanuvchi so'rovi bilan): OpenAI/Claude
+  Vision kabi AI orqali fakturani o'qish joriy bepul on-device usuldan
+  aniqroq bo'lar edi, lekin pullik va internetga bog'liq. Faqat
+  foydalanuvchi alohida so'raganda ko'rib chiqiladi.
+- **iOS — 7 kunlik qayta imzolash** — Apple Developer hisobisiz bepul
+  sideloading cheklovi: Sideloadly orqali o'rnatilgan ilova har 7 kunda
+  qayta imzolanishi kerak (yoki $99/yil Apple Developer hisobiga o'tish —
+  bu cheklovni butunlay bartaraf etadi).
+- **Xodimlar uchun sotuvchi rolini real foydalanuvchida sinash** — hozircha
+  asosan admin rolida test qilingan; `sotuvchi` RLS cheklovlari
+  (faqat savdo kiritish, tovar qoldig'ini ko'rish) real hisob bilan
+  qayta tekshirilmagan.

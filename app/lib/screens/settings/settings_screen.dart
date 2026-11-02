@@ -10,6 +10,7 @@ import '../../services/receipt_printer_service.dart';
 import '../../widgets/empty_state.dart';
 import '../../models/receipt.dart';
 import '../../widgets/receipt_view.dart';
+import '../../widgets/update_gate.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -700,6 +701,16 @@ class _ReceiptTabState extends ConsumerState<_ReceiptTab> {
           icon: const Icon(Icons.receipt_long_outlined),
           label: const Text('Sinov chekini ko\'rish'),
         ),
+        const SizedBox(height: 28),
+        const Divider(),
+        const SizedBox(height: 14),
+        Text('Ilova',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        const UpdateTile(),
       ],
     );
   }

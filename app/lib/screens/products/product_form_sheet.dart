@@ -236,7 +236,7 @@ class _ProductFormSheetState extends ConsumerState<_ProductFormSheet> {
                             onPressed: () async {
                               final code = await showBarcodeScanner(context,
                                   title: 'Shtrix-kodni skanerlash');
-                              if (code == null || !mounted) return;
+                              if (code == null || !context.mounted) return;
 
                               // Bu shtrix-kod boshqa (yoki shu) tovarga
                               // allaqachon tegishli bo'lsa — yangi tovar

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/update_gate.dart';
 
 class _NavItem {
   final String path;
@@ -41,7 +42,7 @@ class HomeShell extends ConsumerWidget {
 
     final isWide = MediaQuery.of(context).size.width >= 800;
 
-    final body = child;
+    final body = UpdateGate(child: child);
 
     if (isWide) {
       return Scaffold(

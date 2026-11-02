@@ -188,7 +188,7 @@ class _BarcodeScannerScreenState extends State<_BarcodeScannerScreen> {
             TextButton(
               onPressed: () async {
                 await _controller.stop();
-                if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
               child: const Text('Tayyor',
