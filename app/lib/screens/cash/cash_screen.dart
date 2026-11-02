@@ -20,6 +20,7 @@ class CashScreen extends ConsumerWidget {
     final txAsync = ref.watch(cashTransactionsProvider);
     final summary = ref.watch(cashSummaryProvider);
     final balance = summary.kirim - summary.rashod;
+    final onHand = ref.watch(cashOnHandProvider).valueOrNull;
 
     return Scaffold(
       floatingActionButton: Row(
@@ -45,6 +46,40 @@ class CashScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              children: [
+                StatCard(
+                  title: 'Kassada jami (hozirgi qoldiq)',
+                  value: onHand == null ? '...' : formatSum(onHand.total),
+                  icon: Icons.account_balance_wallet,
+                  color: AppColors.primary,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: StatCard(
+                        title: 'Naqd pul',
+                        value: onHand == null ? '...' : formatSum(onHand.cash),
+                        icon: Icons.payments_outlined,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: StatCard(
+                        title: 'Kartada',
+                        value: onHand == null ? '...' : formatSum(onHand.card),
+                        icon: Icons.credit_card,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             child: Row(
               children: [
                 Expanded(
@@ -115,7 +150,7 @@ class CashScreen extends ConsumerWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Balans: ${formatSum(balance)}',
+                'Davr balansi: ${formatSum(balance)}',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: balance >= 0 ? AppColors.primary : AppColors.danger),

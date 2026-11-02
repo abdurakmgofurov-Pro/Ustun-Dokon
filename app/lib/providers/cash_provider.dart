@@ -12,7 +12,7 @@ final cashFilterProvider = StateProvider<SalesFilter>((ref) {
 });
 
 final cashTransactionsProvider =
-    FutureProvider<List<CashTransaction>>((ref) async {
+    FutureProvider.autoDispose<List<CashTransaction>>((ref) async {
   final filter = ref.watch(cashFilterProvider);
   final data = await sb
       .from('cash_transactions')
@@ -23,7 +23,8 @@ final cashTransactionsProvider =
   return (data as List).map((e) => CashTransaction.fromMap(e)).toList();
 });
 
-final cashSummaryProvider = Provider<({double kirim, double rashod})>((ref) {
+final cashSummaryProvider =
+    Provider.autoDispose<({double kirim, double rashod})>((ref) {
   final list = ref.watch(cashTransactionsProvider).valueOrNull ?? [];
   final kirim = list
       .where((e) => e.type == CashType.kirim)
@@ -32,6 +33,59 @@ final cashSummaryProvider = Provider<({double kirim, double rashod})>((ref) {
       .where((e) => e.type == CashType.rashod)
       .fold<double>(0, (s, e) => s + e.amount);
   return (kirim: kirim, rashod: rashod);
+});
+
+/// Kassadagi hozirgi qoldiq (barcha davr, filtrdan mustaqil): jami, naqd, karta.
+/// Karta — bekor qilinmagan karta savdolari yig'indisi; naqd = jami − karta
+/// (qo'lda kiritilgan kirim, qarz to'lovlari va naqd savdolar, rashodlar
+/// ayirilgan holda).
+class CashOnHand {
+  final double total;
+  final double card;
+  const CashOnHand({required this.total, required this.card});
+
+  double get cash => total - card;
+}
+
+Future<List<Map<String, dynamic>>> _fetchAll(
+    Future<List<dynamic>> Function(int from, int to) page) async {
+  const pageSize = 1000;
+  final rows = <Map<String, dynamic>>[];
+  for (var from = 0;; from += pageSize) {
+    final chunk = await page(from, from + pageSize - 1);
+    rows.addAll(chunk.cast<Map<String, dynamic>>());
+    if (chunk.length < pageSize) break;
+  }
+  return rows;
+}
+
+final cashOnHandProvider =
+    FutureProvider.autoDispose<CashOnHand>((ref) async {
+  // Yozuv qo'shilsa/o'chirilsa (cashTransactionsProvider yangilansa) qayta hisoblanadi.
+  ref.watch(cashTransactionsProvider);
+
+  final tx = await _fetchAll((from, to) => sb
+      .from('cash_transactions')
+      .select('type, amount')
+      .order('id')
+      .range(from, to));
+  var total = 0.0;
+  for (final r in tx) {
+    final amount = (r['amount'] as num).toDouble();
+    total += r['type'] == 'kirim' ? amount : -amount;
+  }
+
+  final card = await _fetchAll((from, to) => sb
+      .from('sales')
+      .select('total')
+      .eq('payment_type', 'karta')
+      .eq('is_cancelled', false)
+      .order('id')
+      .range(from, to));
+  final cardTotal =
+      card.fold<double>(0, (s, r) => s + (r['total'] as num).toDouble());
+
+  return CashOnHand(total: total, card: cardTotal);
 });
 
 /// Xarajatlar hisoboti ekranida tanlangan oy (har doim oyning 1-kuni).
