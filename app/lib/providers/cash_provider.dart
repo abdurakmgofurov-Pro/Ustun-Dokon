@@ -35,16 +35,14 @@ final cashSummaryProvider =
   return (kirim: kirim, rashod: rashod);
 });
 
-/// Kassadagi hozirgi qoldiq (barcha davr, filtrdan mustaqil): jami, naqd, karta.
-/// Karta — bekor qilinmagan karta savdolari yig'indisi; naqd = jami − karta
-/// (qo'lda kiritilgan kirim, qarz to'lovlari va naqd savdolar, rashodlar
-/// ayirilgan holda).
+/// Kassadagi hozirgi qoldiq (barcha davr, filtrdan mustaqil): naqd va karta
+/// alohida — har bir kirim/rashod yozuvining `payment_method` bo'yicha.
 class CashOnHand {
-  final double total;
+  final double cash;
   final double card;
-  const CashOnHand({required this.total, required this.card});
+  const CashOnHand({required this.cash, required this.card});
 
-  double get cash => total - card;
+  double get total => cash + card;
 }
 
 Future<List<Map<String, dynamic>>> _fetchAll(
@@ -66,26 +64,21 @@ final cashOnHandProvider =
 
   final tx = await _fetchAll((from, to) => sb
       .from('cash_transactions')
-      .select('type, amount')
+      .select('type, amount, payment_method')
       .order('id')
       .range(from, to));
-  var total = 0.0;
+  var cash = 0.0;
+  var card = 0.0;
   for (final r in tx) {
     final amount = (r['amount'] as num).toDouble();
-    total += r['type'] == 'kirim' ? amount : -amount;
+    final signed = r['type'] == 'kirim' ? amount : -amount;
+    if (r['payment_method'] == 'karta') {
+      card += signed;
+    } else {
+      cash += signed;
+    }
   }
-
-  final card = await _fetchAll((from, to) => sb
-      .from('sales')
-      .select('total')
-      .eq('payment_type', 'karta')
-      .eq('is_cancelled', false)
-      .order('id')
-      .range(from, to));
-  final cardTotal =
-      card.fold<double>(0, (s, r) => s + (r['total'] as num).toDouble());
-
-  return CashOnHand(total: total, card: cardTotal);
+  return CashOnHand(cash: cash, card: card);
 });
 
 /// Xarajatlar hisoboti ekranida tanlangan oy (har doim oyning 1-kuni).
@@ -219,6 +212,7 @@ class CashController {
     required double amount,
     required String category,
     String? note,
+    String paymentMethod = 'naqd',
   }) async {
     try {
       final uid = sb.auth.currentUser?.id;
@@ -227,6 +221,7 @@ class CashController {
         'amount': amount,
         'category': category,
         'note': note,
+        'payment_method': paymentMethod,
         'created_by': uid,
       });
       return null;

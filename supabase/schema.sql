@@ -112,6 +112,7 @@ create table public.debt_payments (
   customer_id bigint not null references public.customers(id),
   amount numeric(14,2) not null,
   note text,
+  payment_method text not null default 'naqd' check (payment_method in ('naqd', 'karta')),
   created_by uuid references public.profiles(id),
   created_at timestamptz not null default now()
 );
@@ -129,6 +130,7 @@ create table public.cash_transactions (
   note text,
   sale_id bigint references public.sales(id),        -- savdodan avtomatik yozuv bo'lsa
   debt_payment_id bigint references public.debt_payments(id),
+  payment_method text not null default 'naqd' check (payment_method in ('naqd', 'karta')),
   created_by uuid references public.profiles(id),
   created_at timestamptz not null default now()
 );
@@ -188,8 +190,11 @@ create function public.fn_sale_after_insert()
 returns trigger as $$
 begin
   if new.payment_type in ('naqd', 'karta') then
-    insert into public.cash_transactions (type, amount, category, note, sale_id, created_by)
-    values ('kirim', new.total, 'savdo', 'Savdo #' || new.id, new.id, new.cashier_id);
+    insert into public.cash_transactions
+      (type, amount, category, note, sale_id, created_by, payment_method)
+    values
+      ('kirim', new.total, 'savdo', 'Savdo #' || new.id, new.id, new.cashier_id,
+       new.payment_type::text);
   elsif new.payment_type = 'qarz' and new.customer_id is not null then
     update public.customers
        set total_debt = total_debt + new.total
@@ -211,8 +216,11 @@ begin
      set total_debt = total_debt - new.amount
    where id = new.customer_id;
 
-  insert into public.cash_transactions (type, amount, category, note, debt_payment_id, created_by)
-  values ('kirim', new.amount, 'qarz_tolovi', coalesce(new.note, 'Qarz to''lovi'), new.id, new.created_by);
+  insert into public.cash_transactions
+    (type, amount, category, note, debt_payment_id, created_by, payment_method)
+  values
+    ('kirim', new.amount, 'qarz_tolovi', coalesce(new.note, 'Qarz to''lovi'),
+     new.id, new.created_by, new.payment_method);
   return new;
 end;
 $$ language plpgsql security definer;

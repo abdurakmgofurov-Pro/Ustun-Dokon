@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../providers/cash_provider.dart';
+import '../../widgets/payment_method_picker.dart';
 
 Future<void> showAddTransactionSheet(BuildContext context, CashType type) {
   return showModalBottomSheet(
@@ -28,6 +29,7 @@ class _AddTransactionSheetState extends ConsumerState<_AddTransactionSheet> {
   final _amount = TextEditingController();
   final _note = TextEditingController();
   late String _category;
+  String _method = 'naqd';
   bool _loading = false;
   String? _error;
 
@@ -57,6 +59,7 @@ class _AddTransactionSheetState extends ConsumerState<_AddTransactionSheet> {
           amount: double.parse(_amount.text),
           category: _category,
           note: _note.text.trim(),
+          paymentMethod: _method,
         );
     if (!mounted) return;
     if (error != null) {
@@ -114,6 +117,10 @@ class _AddTransactionSheetState extends ConsumerState<_AddTransactionSheet> {
                 ],
                 onChanged: (v) => setState(() => _category = v ?? categories.first),
               ),
+              const SizedBox(height: 12),
+              PaymentMethodPicker(
+                  value: _method,
+                  onChanged: (v) => setState(() => _method = v)),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _note,

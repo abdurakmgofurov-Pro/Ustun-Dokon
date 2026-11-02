@@ -7,6 +7,7 @@ import '../../models/models.dart';
 import '../../providers/cash_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/payment_method_picker.dart';
 import '../../widgets/stat_card.dart';
 import 'add_transaction_sheet.dart';
 import 'expense_report_screen.dart';
@@ -190,7 +191,7 @@ class CashScreen extends ConsumerWidget {
                         ),
                         title: Text(cashCategoryLabel(tx.category)),
                         subtitle: Text(
-                            '${formatDateTime(tx.createdAt)}${tx.note != null && tx.note!.isNotEmpty ? '\n${tx.note}' : ''}'),
+                            '${formatDateTime(tx.createdAt)} • ${paymentMethodLabel(tx.paymentMethod)}${tx.note != null && tx.note!.isNotEmpty ? '\n${tx.note}' : ''}'),
                         isThreeLine: tx.note != null && tx.note!.isNotEmpty,
                         trailing: Text(
                           '${isIncome ? '+' : '-'}${formatSum(tx.amount)}',

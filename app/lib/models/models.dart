@@ -169,6 +169,7 @@ class CashTransaction {
   final double amount;
   final String category;
   final String? note;
+  final String paymentMethod;
   final DateTime createdAt;
 
   CashTransaction({
@@ -177,6 +178,7 @@ class CashTransaction {
     required this.amount,
     required this.category,
     this.note,
+    this.paymentMethod = 'naqd',
     required this.createdAt,
   });
 
@@ -187,6 +189,7 @@ class CashTransaction {
         amount: (map['amount'] as num?)?.toDouble() ?? 0,
         category: map['category'] as String? ?? 'boshqa',
         note: map['note'] as String?,
+        paymentMethod: map['payment_method'] as String? ?? 'naqd',
         createdAt: DateTime.parse(map['created_at'] as String),
       );
 }

@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../providers/customers_provider.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/payment_method_picker.dart';
 
 class DebtorDetailScreen extends ConsumerWidget {
   final int customerId;
@@ -135,6 +136,7 @@ class DebtorDetailScreen extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     bool loading = false;
     String? error;
+    String method = 'naqd';
 
     showDialog(
       context: context,
@@ -158,6 +160,10 @@ class DebtorDetailScreen extends ConsumerWidget {
                     return null;
                   },
                 ),
+                const SizedBox(height: 12),
+                PaymentMethodPicker(
+                    value: method,
+                    onChanged: (v) => setState(() => method = v)),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: noteCtrl,
@@ -187,6 +193,7 @@ class DebtorDetailScreen extends ConsumerWidget {
                             customerId: customerId,
                             amount: double.parse(amountCtrl.text),
                             note: noteCtrl.text.trim(),
+                            paymentMethod: method,
                           );
                       if (err != null) {
                         setState(() {

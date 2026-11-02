@@ -65,6 +65,7 @@ class CustomerController {
     required int customerId,
     required double amount,
     String? note,
+    String paymentMethod = 'naqd',
   }) async {
     try {
       final uid = sb.auth.currentUser?.id;
@@ -72,6 +73,7 @@ class CustomerController {
         'customer_id': customerId,
         'amount': amount,
         'note': note,
+        'payment_method': paymentMethod,
         'created_by': uid,
       });
       return null;
