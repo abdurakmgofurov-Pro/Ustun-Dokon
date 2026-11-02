@@ -85,9 +85,12 @@ class _EmployeesTab extends ConsumerWidget {
                       ),
                     ),
                     title: Text(p.fullName + (isMe ? ' (siz)' : '')),
-                    subtitle:
-                        Text(p.role == UserRole.admin ? 'Admin' : 'Sotuvchi'),
-                    trailing: isMe
+                    subtitle: Text(p.isOwner
+                        ? 'Asosiy admin'
+                        : p.role == UserRole.admin
+                            ? 'Admin'
+                            : 'Sotuvchi'),
+                    trailing: (isMe || p.isOwner)
                         ? null
                         : Row(
                             mainAxisSize: MainAxisSize.min,

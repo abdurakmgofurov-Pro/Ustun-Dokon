@@ -8,12 +8,14 @@ class AppProfile {
   final String fullName;
   final UserRole role;
   final bool isActive;
+  final bool isOwner;
 
   AppProfile({
     required this.id,
     required this.fullName,
     required this.role,
     required this.isActive,
+    this.isOwner = false,
   });
 
   factory AppProfile.fromMap(Map<String, dynamic> map) => AppProfile(
@@ -21,6 +23,7 @@ class AppProfile {
         fullName: map['full_name'] as String? ?? '',
         role: userRoleFromString(map['role'] as String? ?? 'sotuvchi'),
         isActive: map['is_active'] as bool? ?? true,
+        isOwner: map['is_owner'] as bool? ?? false,
       );
 }
 

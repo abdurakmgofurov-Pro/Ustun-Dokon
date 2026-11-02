@@ -73,6 +73,15 @@ Deno.serve(async (req) => {
       if (user_id === userData.user.id) {
         return json({ error: "O'zingizni o'chira olmaysiz" }, 400);
       }
+      // Asosiy (owner) adminni hech kim o'chira olmaydi
+      const { data: target } = await adminClient
+        .from("profiles")
+        .select("is_owner")
+        .eq("id", user_id)
+        .maybeSingle();
+      if (target?.is_owner) {
+        return json({ error: "Asosiy adminni o'chirib bo'lmaydi" }, 403);
+      }
       const { error } = await adminClient.auth.admin.deleteUser(user_id);
       if (error) return json({ error: error.message }, 400);
       return json({ success: true });

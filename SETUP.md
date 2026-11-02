@@ -13,6 +13,11 @@
    - `supabase/error_logs.sql` — ilova xato jurnali jadvali;
    - `supabase/fix_seller_rls.sql` — sotuvchi xavfsizligi (mijoz qarzini
      o'zgartirish va savdoni `create_sale`dan chetlab yozishni yopadi).
+   - `supabase/payment_method.sql` — kassada naqd/karta ustunlari va triggerlar
+     (yangi o'rnatishda `schema.sql` ichida bor, mavjud loyihada ishga tushiring);
+   - `supabase/protect_owner.sql` — asosiy adminni himoyalash. **Birinchi adminni
+     yaratib bo'lgach** (3-bo'lim) ishga tushiring; fayldagi `056d631c-...` id'ni
+     o'z adminingiz id'siga almashtiring (Authentication -> Users).
    (`fix_error_logs_rls.sql` faqat jurnalga yozishda "row-level security"
    xatosi chiqsa kerak bo'ladi. `reset_data.sql` — barcha do'kon
    ma'lumotlarini o'chiradi, faqat ataylab kerak bo'lganda ishlating.)
