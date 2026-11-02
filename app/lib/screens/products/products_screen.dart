@@ -84,7 +84,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                       message: 'Tovar topilmadi');
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 170),
                   itemCount: filtered.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
