@@ -5,7 +5,17 @@
 2. Loyiha ochilgach, chap menyudan **SQL Editor** bo'limiga o'ting.
 3. `supabase/schema.sql` faylining butun tarkibini nusxalab, SQL Editor'ga
    joylashtiring va **Run** tugmasini bosing. Bu barcha jadvallar, triggerlar
-   va xavfsizlik qoidalarini (RLS) yaratadi.
+   va xavfsizlik qoidalarini (RLS) yaratadi. `schema.sql` ichida foyda
+   hisoboti (`cost` ustuni), chekni bekor qilish va xodim yaratish triggerlari
+   allaqachon bor — `profit_report.sql`, `fix_cancel_sale.sql`,
+   `fix_handle_new_user.sql` yangi o'rnatishda kerak emas.
+   Shundan keyin shu tartibda yana ikkitasini ishga tushiring:
+   - `supabase/error_logs.sql` — ilova xato jurnali jadvali;
+   - `supabase/fix_seller_rls.sql` — sotuvchi xavfsizligi (mijoz qarzini
+     o'zgartirish va savdoni `create_sale`dan chetlab yozishni yopadi).
+   (`fix_error_logs_rls.sql` faqat jurnalga yozishda "row-level security"
+   xatosi chiqsa kerak bo'ladi. `reset_data.sql` — barcha do'kon
+   ma'lumotlarini o'chiradi, faqat ataylab kerak bo'lganda ishlating.)
 4. Chap menyudan **Project Settings -> API** bo'limiga o'ting va quyidagilarni
    nusxalang:
    - **Project URL** (masalan: `https://xxxxxxxx.supabase.co`)
@@ -65,7 +75,7 @@ yangi hisob yarata oladi.
 
 ### Veb versiyasini ishga tushirish
 ```powershell
-cd "c:\Abdurahim\ustun dokon\app"
+cd "c:\Abdurahim\SHAXSIY\ustun dokon\app"
 flutter run -d chrome
 ```
 
@@ -73,19 +83,52 @@ flutter run -d chrome
 Telefonni USB orqali ulang, "USB debugging" (Dasturchi rejimi) yoqilgan
 bo'lishi kerak, so'ng:
 ```powershell
-cd "c:\Abdurahim\ustun dokon\app"
+cd "c:\Abdurahim\SHAXSIY\ustun dokon\app"
 flutter devices          # ulangan qurilmalarni ko'rish
 flutter run -d <device_id>
 ```
 
 ## 5. APK (o'rnatiladigan fayl) yig'ish
 ```powershell
-cd "c:\Abdurahim\ustun dokon\app"
+cd "c:\Abdurahim\SHAXSIY\ustun dokon\app"
 flutter build apk --release
 ```
 Tayyor fayl: `app\build\app\outputs\flutter-apk\app-release.apk`
 Ushbu faylni telefonga ko'chirib, o'rnatishingiz mumkin (noma'lum
 manbalardan o'rnatishga ruxsat berish talab qilinishi mumkin).
+
+**Muhim:** APK'ni faqat shu kompyuterda yig'ing — u release kaliti
+(`app/android/ustun-dokon-release.keystore` + `key.properties`) bilan
+imzolanadi. Codemagic/Mac'da bu kalit yo'q va u debug kaliti bilan
+imzolaydi: bunday APK o'rnatilgan ilovaning ustiga o'rnatilmaydi
+("konflikt") va avto-yangilanish ishlamaydi. Kalit fayllari `.gitignore`da —
+ularni boshqa joyga zaxiralab qo'ying; yo'qolsa, ilovani o'chirib qayta
+o'rnatishga to'g'ri keladi.
+
+### Yangi versiya chiqarish (Android avto-yangilanish)
+Ilova ochilganda GitHub Releases'dagi so'nggi relizni tekshiradi va yangisi
+bo'lsa yangilashni taklif qiladi (Sozlamalar -> Ilova'dan qo'lda ham tekshirish
+mumkin).
+1. `app/pubspec.yaml`da `version`ni oshiring (masalan `1.1.3+5`).
+2. `flutter build apk --release`, so'ng `app-release.apk`ni loyiha ildizidagi
+   `ustun-dokon.apk`ga ko'chiring.
+3. O'zgarishlarni commit + push qiling.
+4. Reliz yarating (teg `v` + versiya, fayl nomi aynan `ustun-dokon.apk`):
+   ```powershell
+   gh release create v1.1.3 ustun-dokon.apk --repo abdurakmgofurov-Pro/Ustun-Dokon --target main --title "Ustun Do'kon 1.1.3" --notes "Nima o'zgardi"
+   ```
+Avto-yangilanish faqat Android'da; iOS'da Sideloadly orqali qo'lda o'rnatiladi.
+
+### iOS (ixtiyoriy)
+`codemagic.yaml` (ios-workflow) GitHub'dagi repo'dan Codemagic'da `.ipa`
+yig'adi; uni bepul Apple ID bilan Sideloadly orqali o'rnatasiz (har 7 kunda
+qayta imzolash kerak). Batafsil: PLAN.md.
+
+### Testlar
+```powershell
+cd "c:\Abdurahim\SHAXSIY\ustun dokon\app"
+flutter test
+```
 
 ## 6. Veb versiyasini internetga joylash (ixtiyoriy)
 `flutter build web` buyrug'i `app\build\web` papkasida statik fayllar
@@ -100,3 +143,7 @@ oladigan qilib qo'yishingiz mumkin.
 - Barcha ma'lumotlar xavfsizligi Supabase'dagi RLS (Row Level Security)
   qoidalari orqali ta'minlanadi: sotuvchilar faqat savdo kirita oladi,
   kassa va xodimlar boshqaruvi faqat adminlarga ochiq.
+- Supabase bepul tarifda loyiha 7 kun deyarli so'rovsiz tursa **pauza**
+  qilinadi (domen ishlamay qoladi). Dashboard'dan **Restore project**
+  bosing; ilovadan haftada kamida bir marta foydalanish pauzaning oldini
+  oladi. Bepul tarifda avtomatik zaxira nusxa yo'q.
