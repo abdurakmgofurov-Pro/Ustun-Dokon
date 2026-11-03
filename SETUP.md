@@ -15,6 +15,8 @@
      o'zgartirish va savdoni `create_sale`dan chetlab yozishni yopadi).
    - `supabase/payment_method.sql` — kassada naqd/karta ustunlari va triggerlar
      (yangi o'rnatishda `schema.sql` ichida bor, mavjud loyihada ishga tushiring);
+   - `supabase/refund_customer.sql` — qarz to'langach tovar qaytarilganda mijozga pulni
+     qaytarish funksiyasi (ilovadagi "Pulni qaytarish" tugmasi shuni chaqiradi);
    - `supabase/protect_owner.sql` — asosiy adminni himoyalash. **Birinchi adminni
      yaratib bo'lgach** (3-bo'lim) ishga tushiring; fayldagi `056d631c-...` id'ni
      o'z adminingiz id'siga almashtiring (Authentication -> Users).

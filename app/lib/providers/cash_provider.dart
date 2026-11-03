@@ -202,6 +202,7 @@ String cashCategoryLabel(String key) {
     'boshqa_daromad': 'Boshqa daromad',
     'savdo': 'Savdo',
     'qarz_tolovi': 'Qarz to\'lovi',
+    'qaytarish': 'Mijozga qaytarilgan pul',
   };
   return labels[key] ?? key;
 }

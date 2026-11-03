@@ -14,6 +14,7 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
   final data = await sb
       .from('products')
       .select('*, categories(name)')
+      .eq('is_active', true)
       .order('name');
   return (data as List).map((e) => Product.fromMap(e)).toList();
 });
@@ -118,10 +119,29 @@ class CatalogController {
     }
   }
 
+  /// Tovarni o'chiradi. Savdolarda ishlatilgan tovarni bazadan o'chirib
+  /// bo'lmaydi (savdo tarixi buzilmasligi uchun), shuning uchun u arxivga
+  /// o'tkaziladi (is_active=false, shtrix-kod bo'shatiladi) va foydalanuvchiga
+  /// shu haqida xabar qaytariladi.
   Future<String?> deleteProduct(int id) async {
     try {
       await sb.from('products').delete().eq('id', id);
       return null;
+    } on PostgrestException catch (e, st) {
+      if (e.code == '23503') {
+        try {
+          await sb
+              .from('products')
+              .update({'is_active': false, 'barcode': null}).eq('id', id);
+          return "Tovar savdolarda ishlatilgan, shuning uchun to'liq "
+              "o'chirilmadi — arxivga o'tkazildi va ro'yxatdan yashirildi.";
+        } catch (e2, st2) {
+          errorLogService.log('archive_product', e2, stackTrace: st2);
+          return "O'chirishda xatolik: $e2";
+        }
+      }
+      errorLogService.log('delete_product', e, stackTrace: st);
+      return "O'chirishda xatolik: $e";
     } catch (e, st) {
       errorLogService.log('delete_product', e, stackTrace: st);
       return 'O\'chirishda xatolik: $e';

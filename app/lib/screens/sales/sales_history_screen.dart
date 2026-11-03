@@ -6,6 +6,10 @@ import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../models/receipt.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/cash_provider.dart';
+import '../../providers/catalog_provider.dart';
+import '../../providers/customers_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/receipt_view.dart';
@@ -230,10 +234,20 @@ class _SaleTile extends ConsumerWidget {
                               ),
                             );
                             if (confirmed == true) {
-                              await ref
+                              final error = await ref
                                   .read(salesControllerProvider)
                                   .cancelSale(sale.id);
                               ref.invalidate(salesListProvider);
+                              // Bekor qilish kassa, qoldiq, qarz va hisobotlarga ta'sir qiladi.
+                              ref.invalidate(cashTransactionsProvider);
+                              ref.invalidate(cashOnHandProvider);
+                              ref.invalidate(productsProvider);
+                              ref.invalidate(customersProvider);
+                              ref.invalidate(dashboardProvider);
+                              if (error != null && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(error)));
+                              }
                             }
                           },
                         ),

@@ -14,6 +14,14 @@ final debtorsProvider = Provider<List<Customer>>((ref) {
     ..sort((a, b) => b.totalDebt.compareTo(a.totalDebt));
 });
 
+/// Qarz to'langach tovar qaytarilib sotuv bekor qilingan mijozlar: ularning
+/// qoldig'i manfiy — do'kon mijozga shuncha qarz (qaytarilishi kerak).
+final creditorsProvider = Provider<List<Customer>>((ref) {
+  final customers = ref.watch(customersProvider).valueOrNull ?? [];
+  return customers.where((c) => c.totalDebt < 0).toList()
+    ..sort((a, b) => a.totalDebt.compareTo(b.totalDebt));
+});
+
 final totalDebtProvider = Provider<double>((ref) {
   final debtors = ref.watch(debtorsProvider);
   return debtors.fold<double>(0, (sum, c) => sum + c.totalDebt);
@@ -58,6 +66,25 @@ class CustomerController {
       return Customer.fromMap(data);
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Mijozga ortiqcha to'langan pulni qaytaradi (faqat admin, serverda
+  /// tekshiriladi): kassaga rashod yoziladi va mijoz qoldig'i kamayadi.
+  Future<String?> refund({
+    required int customerId,
+    required double amount,
+    String paymentMethod = 'naqd',
+  }) async {
+    try {
+      await sb.rpc('refund_customer', params: {
+        'p_customer_id': customerId,
+        'p_amount': amount,
+        'p_method': paymentMethod,
+      });
+      return null;
+    } catch (e) {
+      return "Pulni qaytarishda xatolik: $e";
     }
   }
 

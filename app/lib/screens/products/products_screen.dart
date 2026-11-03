@@ -176,10 +176,14 @@ class _ProductTile extends ConsumerWidget {
                       ),
                     );
                     if (confirmed == true) {
-                      await ref
+                      final message = await ref
                           .read(catalogControllerProvider)
                           .deleteProduct(product.id);
                       ref.invalidate(productsProvider);
+                      if (message != null && context.mounted) {
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(message)));
+                      }
                     }
                   }
                 },

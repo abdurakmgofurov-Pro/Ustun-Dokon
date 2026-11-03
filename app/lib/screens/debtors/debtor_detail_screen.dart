@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
 import '../../core/theme.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/cash_provider.dart';
 import '../../providers/customers_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/payment_method_picker.dart';
 
@@ -22,13 +25,25 @@ class DebtorDetailScreen extends ConsumerWidget {
         ?.where((c) => c.id == customerId)
         .firstOrNull;
 
+    final credit = (customer?.totalDebt ?? 0) < 0;
+    final isAdmin = ref.watch(isAdminProvider);
+
     return Scaffold(
       appBar: AppBar(title: Text(customer?.fullName ?? 'Mijoz')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showPayDialog(context, ref),
-        icon: const Icon(Icons.payments_outlined),
-        label: const Text('To\'lov qilish'),
-      ),
+      floatingActionButton: credit
+          ? (isAdmin
+              ? FloatingActionButton.extended(
+                  onPressed: () =>
+                      _showRefundDialog(context, ref, -customer!.totalDebt),
+                  icon: const Icon(Icons.undo_outlined),
+                  label: const Text('Pulni qaytarish'),
+                )
+              : null)
+          : FloatingActionButton.extended(
+              onPressed: () => _showPayDialog(context, ref),
+              icon: const Icon(Icons.payments_outlined),
+              label: const Text('To\'lov qilish'),
+            ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
@@ -37,14 +52,18 @@ class DebtorDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Text('Joriy qarz', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                      credit
+                          ? "Do'kon mijozga qaytarishi kerak (ortiqcha to'lov)"
+                          : 'Joriy qarz',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium),
                   const SizedBox(height: 6),
                   Text(
-                    formatSum(customer?.totalDebt ?? 0),
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(fontWeight: FontWeight.bold, color: AppColors.danger),
+                    formatSum((customer?.totalDebt ?? 0).abs()),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: credit ? AppColors.primary : AppColors.danger),
                   ),
                   if (customer?.phone != null) ...[
                     const SizedBox(height: 6),
@@ -126,6 +145,88 @@ class DebtorDetailScreen extends ConsumerWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showRefundDialog(BuildContext context, WidgetRef ref, double max) {
+    final amountCtrl = TextEditingController(text: max.toStringAsFixed(0));
+    final formKey = GlobalKey<FormState>();
+    bool loading = false;
+    String? error;
+    String method = 'naqd';
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Pulni qaytarish'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                    "Mijozga qaytariladigan pul kassadan rashod bo'lib yoziladi. "
+                    "Ko'pi bilan ${formatSum(max)}."),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: amountCtrl,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: "Summa (so'm)"),
+                  validator: (v) {
+                    final n = double.tryParse(v ?? '');
+                    if (n == null || n <= 0) return 'Summani kiriting';
+                    if (n > max) return "Qaytariladigan summadan ko'p";
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                PaymentMethodPicker(
+                    value: method,
+                    onChanged: (v) => setState(() => method = v)),
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(error!, style: const TextStyle(color: AppColors.danger)),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Bekor qilish'),
+            ),
+            FilledButton(
+              onPressed: loading
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setState(() => loading = true);
+                      final err =
+                          await ref.read(customerControllerProvider).refund(
+                                customerId: customerId,
+                                amount: double.parse(amountCtrl.text),
+                                paymentMethod: method,
+                              );
+                      if (err != null) {
+                        setState(() {
+                          loading = false;
+                          error = err;
+                        });
+                        return;
+                      }
+                      ref.invalidate(customersProvider);
+                      ref.invalidate(cashTransactionsProvider);
+                      ref.invalidate(cashOnHandProvider);
+                      ref.invalidate(dashboardProvider);
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    },
+              child: const Text('Qaytarish'),
+            ),
+          ],
+        ),
       ),
     );
   }

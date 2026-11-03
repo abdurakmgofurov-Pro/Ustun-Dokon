@@ -24,6 +24,10 @@ class _DebtorsScreenState extends ConsumerState<DebtorsScreen> {
     final filtered = debtors
         .where((c) => c.fullName.toLowerCase().contains(_query))
         .toList();
+    final creditors = ref
+        .watch(creditorsProvider)
+        .where((c) => c.fullName.toLowerCase().contains(_query))
+        .toList();
 
     return Scaffold(
       body: Column(
@@ -49,32 +53,54 @@ class _DebtorsScreenState extends ConsumerState<DebtorsScreen> {
             ),
           ),
           Expanded(
-            child: filtered.isEmpty
+            child: filtered.isEmpty && creditors.isEmpty
                 ? const EmptyState(
                     icon: Icons.people_outline,
                     message: 'Qarzdorlar topilmadi')
-                : ListView.separated(
+                : ListView(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) {
-                      final c = filtered[i];
-                      return Card(
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                              child: Icon(Icons.person_outline)),
-                          title: Text(c.fullName),
-                          subtitle: Text(c.phone ?? ''),
-                          trailing: Text(
-                            formatSum(c.totalDebt),
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.danger),
+                    children: [
+                      for (final c in filtered)
+                        Card(
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                                child: Icon(Icons.person_outline)),
+                            title: Text(c.fullName),
+                            subtitle: Text(c.phone ?? ''),
+                            trailing: Text(
+                              formatSum(c.totalDebt),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.danger),
+                            ),
+                            onTap: () => context.go('/debtors/${c.id}'),
                           ),
-                          onTap: () => context.go('/debtors/${c.id}'),
                         ),
-                      );
-                    },
+                      if (creditors.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+                          child: Text(
+                              "Do'kon qaytarishi kerak (ortiqcha to'lov)",
+                              style: Theme.of(context).textTheme.titleSmall),
+                        ),
+                        for (final c in creditors)
+                          Card(
+                            child: ListTile(
+                              leading: const CircleAvatar(
+                                  child: Icon(Icons.undo_outlined)),
+                              title: Text(c.fullName),
+                              subtitle: Text(c.phone ?? ''),
+                              trailing: Text(
+                                formatSum(-c.totalDebt),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary),
+                              ),
+                              onTap: () => context.go('/debtors/${c.id}'),
+                            ),
+                          ),
+                      ],
+                    ],
                   ),
           ),
         ],

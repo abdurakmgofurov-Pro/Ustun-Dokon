@@ -101,7 +101,14 @@ class SalesController {
 
   Future<String?> cancelSale(int saleId) async {
     try {
-      await sb.from('sales').update({'is_cancelled': true}).eq('id', saleId);
+      final rows = await sb
+          .from('sales')
+          .update({'is_cancelled': true})
+          .eq('id', saleId)
+          .select('id');
+      if ((rows as List).isEmpty) {
+        return "Chek bekor qilinmadi (ruxsat yo'q yoki chek topilmadi)";
+      }
       return null;
     } catch (e, st) {
       errorLogService.log('sales_cancel', e,
