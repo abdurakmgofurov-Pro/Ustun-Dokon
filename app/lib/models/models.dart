@@ -173,6 +173,9 @@ class CashTransaction {
   final String category;
   final String? note;
   final String paymentMethod;
+
+  /// Savdo yoki qarz to'lovi bilan bog'liq (avtomatik yozilgan) yozuvmi.
+  final bool linked;
   final DateTime createdAt;
 
   CashTransaction({
@@ -182,6 +185,7 @@ class CashTransaction {
     required this.category,
     this.note,
     this.paymentMethod = 'naqd',
+    this.linked = false,
     required this.createdAt,
   });
 
@@ -193,6 +197,7 @@ class CashTransaction {
         category: map['category'] as String? ?? 'boshqa',
         note: map['note'] as String?,
         paymentMethod: map['payment_method'] as String? ?? 'naqd',
+        linked: map['sale_id'] != null || map['debt_payment_id'] != null,
         createdAt: DateTime.parse(map['created_at'] as String),
       );
 }

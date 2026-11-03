@@ -24,6 +24,11 @@ final isAdminProvider = Provider<bool>((ref) {
   return profile?.role == UserRole.admin;
 });
 
+/// Asosiy (super) admin — masalan kassa yozuvini o'chirish faqat unga ruxsat.
+final isOwnerProvider = Provider<bool>((ref) {
+  return ref.watch(currentProfileProvider).valueOrNull?.isOwner ?? false;
+});
+
 class AuthController {
   Future<String?> signIn(String email, String password) async {
     try {

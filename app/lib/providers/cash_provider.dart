@@ -233,7 +233,11 @@ class CashController {
 
   Future<String?> deleteTransaction(int id) async {
     try {
-      await sb.from('cash_transactions').delete().eq('id', id);
+      final rows =
+          await sb.from('cash_transactions').delete().eq('id', id).select('id');
+      if ((rows as List).isEmpty) {
+        return "Yozuv o'chirilmadi (faqat asosiy admin o'chira oladi)";
+      }
       return null;
     } catch (e) {
       return 'O\'chirishda xatolik: $e';

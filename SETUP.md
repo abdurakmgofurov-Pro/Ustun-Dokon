@@ -20,6 +20,8 @@
    - `supabase/protect_owner.sql` — asosiy adminni himoyalash. **Birinchi adminni
      yaratib bo'lgach** (3-bo'lim) ishga tushiring; fayldagi `056d631c-...` id'ni
      o'z adminingiz id'siga almashtiring (Authentication -> Users).
+   - `supabase/owner_cash_delete.sql` — kassa yozuvini o'chirish faqat asosiy adminga
+     (`protect_owner.sql`dan keyin ishga tushiring);
    (`fix_error_logs_rls.sql` faqat jurnalga yozishda "row-level security"
    xatosi chiqsa kerak bo'ladi. `reset_data.sql` — barcha do'kon
    ma'lumotlarini o'chiradi, faqat ataylab kerak bo'lganda ishlating.)

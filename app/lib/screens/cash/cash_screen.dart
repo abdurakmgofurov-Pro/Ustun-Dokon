@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cash_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/sales_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/payment_method_picker.dart';
@@ -15,6 +17,44 @@ import 'expense_report_screen.dart';
 class CashScreen extends ConsumerWidget {
   const CashScreen({super.key});
 
+  static const linkedWarning =
+      "Bu yozuv savdo yoki qarz to'lovi bilan bog'liq. O'chirsangiz "
+      "savdo/qarz o'zgarmaydi, faqat kassa qoldig'i o'zgaradi.\n\n";
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, CashTransaction tx) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("Kassa yozuvini o'chirish"),
+        content: Text(
+          '${cashCategoryLabel(tx.category)}: ${formatSum(tx.amount)}\n\n'
+          '${tx.linked ? linkedWarning : ''}'
+          "Bu amalni orqaga qaytarib bo'lmaydi.",
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Bekor qilish')),
+          FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text("O'chirish")),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final error =
+        await ref.read(cashControllerProvider).deleteTransaction(tx.id);
+    ref.invalidate(cashTransactionsProvider);
+    ref.invalidate(cashOnHandProvider);
+    ref.invalidate(dashboardProvider);
+    if (error != null && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(cashFilterProvider);
@@ -22,6 +62,7 @@ class CashScreen extends ConsumerWidget {
     final summary = ref.watch(cashSummaryProvider);
     final balance = summary.kirim - summary.rashod;
     final onHand = ref.watch(cashOnHandProvider).valueOrNull;
+    final isOwner = ref.watch(isOwnerProvider);
 
     return Scaffold(
       floatingActionButton: Row(
@@ -193,12 +234,26 @@ class CashScreen extends ConsumerWidget {
                         subtitle: Text(
                             '${formatDateTime(tx.createdAt)} • ${paymentMethodLabel(tx.paymentMethod)}${tx.note != null && tx.note!.isNotEmpty ? '\n${tx.note}' : ''}'),
                         isThreeLine: tx.note != null && tx.note!.isNotEmpty,
-                        trailing: Text(
-                          '${isIncome ? '+' : '-'}${formatSum(tx.amount)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isIncome ? AppColors.primary : AppColors.danger,
-                          ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${isIncome ? '+' : '-'}${formatSum(tx.amount)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isIncome
+                                    ? AppColors.primary
+                                    : AppColors.danger,
+                              ),
+                            ),
+                            if (isOwner)
+                              IconButton(
+                                tooltip: "O'chirish",
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () =>
+                                    _confirmDelete(context, ref, tx),
+                              ),
+                          ],
                         ),
                       ),
                     );
