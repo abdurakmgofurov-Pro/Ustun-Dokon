@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme.dart';
+
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -20,10 +22,11 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
-    final radius = (Theme.of(context).cardTheme.shape as RoundedRectangleBorder?)
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final radius = (theme.cardTheme.shape as RoundedRectangleBorder?)
             ?.borderRadius as BorderRadius? ??
-        BorderRadius.circular(12);
+        BorderRadius.circular(18);
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -32,46 +35,47 @@ class StatCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  color: color.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: color),
+                child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: muted)),
-                    const SizedBox(height: 4),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: muted, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
                     Text(value,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge
+                            ?.copyWith(fontFeatures: tabularFigures)),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(subtitle!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: muted)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: muted, fontFeatures: tabularFigures)),
                     ],
                   ],
                 ),
               ),
               if (onTap != null)
-                Icon(Icons.chevron_right, color: muted, size: 20),
+                Icon(Icons.chevron_right_rounded, color: muted, size: 22),
             ],
           ),
         ),

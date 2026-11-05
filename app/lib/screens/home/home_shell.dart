@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/brand_mark.dart';
 import '../../widgets/update_gate.dart';
 
 class _NavItem {
@@ -56,10 +57,7 @@ class HomeShell extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Column(
                   children: [
-                    const CircleAvatar(
-                      radius: 22,
-                      child: Icon(Icons.storefront),
-                    ),
+                    const BrandMark(size: 44),
                     const SizedBox(height: 8),
                     Text(profile?.fullName ?? '',
                         style: Theme.of(context).textTheme.bodySmall,

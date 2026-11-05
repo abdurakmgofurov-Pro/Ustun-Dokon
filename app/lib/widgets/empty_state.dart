@@ -15,11 +15,21 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: onSurface.withValues(alpha: 0.25)),
-            const SizedBox(height: 12),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: onSurface.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 34, color: onSurface.withValues(alpha: 0.4)),
+            ),
+            const SizedBox(height: 14),
             Text(message,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: onSurface.withValues(alpha: 0.5))),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: onSurface.withValues(alpha: 0.55))),
           ],
         ),
       ),

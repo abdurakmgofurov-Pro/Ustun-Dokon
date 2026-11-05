@@ -31,6 +31,11 @@ class DashboardScreen extends ConsumerWidget {
         data: (data) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _SalesHero(
+              data: data,
+              onTap: () => context.go('/sales-history'),
+            ),
+            const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, c) {
                 final cols = c.maxWidth > 900 ? 4 : (c.maxWidth > 600 ? 2 : 1);
@@ -42,14 +47,6 @@ class DashboardScreen extends ConsumerWidget {
                   crossAxisSpacing: 12,
                   childAspectRatio: 2.6,
                   children: [
-                    StatCard(
-                      title: 'Bugungi savdo',
-                      value: formatSum(data.todaySales),
-                      subtitle: '${data.todayReceipts} ta chek',
-                      icon: Icons.point_of_sale,
-                      color: AppColors.primary,
-                      onTap: () => context.go('/sales-history'),
-                    ),
                     StatCard(
                       title: 'Bugungi foyda',
                       value: formatSum(data.todayProfit),
@@ -299,6 +296,151 @@ class _WeeklyChart extends StatelessWidget {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+
+/// Bosh sahifaning asosiy kartasi: bugungi savdo, kechagiga nisbatan o'zgarish
+/// va so'nggi 7 kunning mini ustunlari (bugun to'liq yorqinlikda).
+class _SalesHero extends StatelessWidget {
+  final DashboardData data;
+  final VoidCallback onTap;
+  const _SalesHero({required this.data, required this.onTap});
+
+  static const _weekdays = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+
+  String _deltaText() {
+    final pts = data.last7Days;
+    final yesterday = pts.length >= 2 ? pts[pts.length - 2].total : 0.0;
+    if (yesterday <= 0) {
+      return data.todaySales > 0 ? "Kecha savdo bo'lmagan" : 'Bugun hali savdo yo\'q';
+    }
+    final pct = (data.todaySales - yesterday) / yesterday * 100;
+    final sign = pct >= 0 ? '+' : '−';
+    return '$sign${pct.abs().toStringAsFixed(0)}% kechagiga nisbatan';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pts = data.last7Days;
+    final maxV = pts.fold<double>(0, (m, p) => p.total > m ? p.total : m);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryDeep],
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Bugungi savdo',
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text('${data.todayReceipts} ta chek',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    formatSum(data.todaySales),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: tabularFigures,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(_deltaText(),
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 18),
+                SizedBox(
+                  height: 64,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (var i = 0; i < pts.length; i++)
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  height: 4 +
+                                      (maxV > 0
+                                          ? 36 * (pts[i].total / maxV)
+                                          : 0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(
+                                        alpha: i == pts.length - 1
+                                            ? 1
+                                            : 0.35),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _weekdays[pts[i].day.weekday - 1],
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(
+                                        alpha: i == pts.length - 1
+                                            ? 1
+                                            : 0.7),
+                                    fontSize: 11,
+                                    fontWeight: i == pts.length - 1
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

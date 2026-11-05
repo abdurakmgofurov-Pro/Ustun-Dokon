@@ -216,63 +216,102 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.55);
     final outOfStock = product.stock <= 0;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  product.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+    final inCart = qtyInCart > 0;
+    final stockColor = outOfStock
+        ? AppColors.danger
+        : product.isLowStock
+            ? AppColors.warning
+            : AppColors.success;
+    final hairline = isDark
+        ? Colors.white.withValues(alpha: 0.07)
+        : Colors.black.withValues(alpha: 0.06);
+
+    return Opacity(
+      opacity: outOfStock ? 0.6 : 1,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: inCart ? AppColors.primary : hairline,
+            width: inCart ? 1.8 : 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        product.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                    ),
+                    if (inCart)
+                      Container(
+                        margin: const EdgeInsets.only(left: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(formatQty(qtyInCart),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800)),
+                      ),
+                  ],
                 ),
-              ),
-              Text(formatSum(product.sellPrice),
-                  style: const TextStyle(
-                      color: AppColors.primary, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      outOfStock
-                          ? 'Qoldiq yo\'q'
-                          : '${formatQty(product.stock)} ${product.unit}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: outOfStock
-                            ? AppColors.danger
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                  if (qtyInCart > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
+                const Spacer(),
+                Text(formatSum(product.sellPrice),
+                    style: const TextStyle(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(formatQty(qtyInCart),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold)),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        fontFeatures: tabularFigures)),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: stockColor, shape: BoxShape.circle),
                     ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        outOfStock
+                            ? "Qoldiq yo'q"
+                            : '${formatQty(product.stock)} ${product.unit}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: outOfStock ? AppColors.danger : muted,
+                            fontFeatures: tabularFigures),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
