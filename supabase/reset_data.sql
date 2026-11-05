@@ -15,6 +15,7 @@ truncate table
   public.sale_items,
   public.cash_transactions,
   public.debt_payments,
+  public.debt_entries,
   public.sales,
   public.customers,
   public.products,

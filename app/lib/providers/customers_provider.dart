@@ -27,6 +27,16 @@ final totalDebtProvider = Provider<double>((ref) {
   return debtors.fold<double>(0, (sum, c) => sum + c.totalDebt);
 });
 
+final customerDebtEntriesProvider =
+    FutureProvider.family<List<DebtEntry>, int>((ref, customerId) async {
+  final data = await sb
+      .from('debt_entries')
+      .select()
+      .eq('customer_id', customerId)
+      .order('created_at', ascending: false);
+  return (data as List).map((e) => DebtEntry.fromMap(e)).toList();
+});
+
 final customerDebtPaymentsProvider =
     FutureProvider.family<List<DebtPayment>, int>((ref, customerId) async {
   final data = await sb
@@ -66,6 +76,24 @@ class CustomerController {
       return Customer.fromMap(data);
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Mijozga savdosiz qarz qo'shadi (faqat admin, serverda tekshiriladi).
+  Future<String?> addDebt({
+    required int customerId,
+    required double amount,
+    String? note,
+  }) async {
+    try {
+      await sb.rpc('add_customer_debt', params: {
+        'p_customer_id': customerId,
+        'p_amount': amount,
+        'p_note': note,
+      });
+      return null;
+    } catch (e) {
+      return "Qarz qo'shishda xatolik: $e";
     }
   }
 

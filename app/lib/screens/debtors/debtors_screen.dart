@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/customers_provider.dart';
 import '../../widgets/empty_state.dart';
+import '../sales/customer_picker.dart';
+import 'add_debt_dialog.dart';
 
 class DebtorsScreen extends ConsumerStatefulWidget {
   const DebtorsScreen({super.key});
@@ -29,7 +32,21 @@ class _DebtorsScreenState extends ConsumerState<DebtorsScreen> {
         .where((c) => c.fullName.toLowerCase().contains(_query))
         .toList();
 
+    final isAdmin = ref.watch(isAdminProvider);
+
     return Scaffold(
+      floatingActionButton: isAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final customer = await showCustomerPicker(context, ref);
+                if (customer != null && context.mounted) {
+                  await showAddDebtDialog(context, ref, customer);
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text("Qarz qo'shish"),
+            )
+          : null,
       body: Column(
         children: [
           Padding(
@@ -58,7 +75,7 @@ class _DebtorsScreenState extends ConsumerState<DebtorsScreen> {
                     icon: Icons.people_outline,
                     message: 'Qarzdorlar topilmadi')
                 : ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
                     children: [
                       for (final c in filtered)
                         Card(

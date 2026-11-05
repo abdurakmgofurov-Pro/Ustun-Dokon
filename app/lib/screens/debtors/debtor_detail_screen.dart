@@ -10,6 +10,7 @@ import '../../providers/customers_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/payment_method_picker.dart';
+import 'add_debt_dialog.dart';
 
 class DebtorDetailScreen extends ConsumerWidget {
   final int customerId;
@@ -20,6 +21,7 @@ class DebtorDetailScreen extends ConsumerWidget {
     final customersAsync = ref.watch(customersProvider);
     final paymentsAsync = ref.watch(customerDebtPaymentsProvider(customerId));
     final salesAsync = ref.watch(customerSalesProvider(customerId));
+    final entriesAsync = ref.watch(customerDebtEntriesProvider(customerId));
 
     final customer = customersAsync.valueOrNull
         ?.where((c) => c.id == customerId)
@@ -78,6 +80,29 @@ class DebtorDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+          if (isAdmin && customer != null) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => showAddDebtDialog(context, ref, customer),
+              icon: const Icon(Icons.add),
+              label: const Text("Qarz qo'shish"),
+            ),
+          ],
+          if ((entriesAsync.valueOrNull ?? const []).isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text("Qo'lda qo'shilgan qarzlar",
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            for (final e in entriesAsync.valueOrNull!)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.edit_note_outlined),
+                  title: Text(formatSum(e.amount)),
+                  subtitle: Text(
+                      '${formatDateTime(e.createdAt)}${e.note != null && e.note!.isNotEmpty ? ' • ${e.note}' : ''}'),
+                ),
+              ),
+          ],
           const SizedBox(height: 20),
           Text('Qarzga olingan savdolar',
               style: Theme.of(context).textTheme.titleMedium),

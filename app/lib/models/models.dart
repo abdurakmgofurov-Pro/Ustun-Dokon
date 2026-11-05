@@ -202,6 +202,31 @@ class CashTransaction {
       );
 }
 
+/// Mijozga qo'lda (savdosiz) qo'shilgan qarz yozuvi.
+class DebtEntry {
+  final int id;
+  final int customerId;
+  final double amount;
+  final String? note;
+  final DateTime createdAt;
+
+  DebtEntry({
+    required this.id,
+    required this.customerId,
+    required this.amount,
+    this.note,
+    required this.createdAt,
+  });
+
+  factory DebtEntry.fromMap(Map<String, dynamic> map) => DebtEntry(
+        id: map['id'] as int,
+        customerId: map['customer_id'] as int,
+        amount: (map['amount'] as num).toDouble(),
+        note: map['note'] as String?,
+        createdAt: DateTime.parse(map['created_at'] as String),
+      );
+}
+
 class DebtPayment {
   final int id;
   final int customerId;

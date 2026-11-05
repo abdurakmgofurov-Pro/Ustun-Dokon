@@ -70,6 +70,16 @@ class DashboardScreen extends ConsumerWidget {
                       color: AppColors.warning,
                       onTap: () => context.go('/debtors'),
                     ),
+                    if (isAdmin)
+                      StatCard(
+                        title: "Tovar qoldig'i (tannarx)",
+                        value: formatSum(extras.stockCost),
+                        subtitle:
+                            'Sotuv narxida: ${formatSum(extras.stockRetail)}',
+                        icon: Icons.inventory_2,
+                        color: Colors.indigo,
+                        onTap: () => context.go('/products'),
+                      ),
                     StatCard(
                       title: 'Kam qolgan tovarlar',
                       value: '${extras.lowStock.length} ta',

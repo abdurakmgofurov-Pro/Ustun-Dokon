@@ -26,10 +26,12 @@ class PosScreen extends ConsumerStatefulWidget {
 
 class _PosScreenState extends ConsumerState<PosScreen> {
   String _query = '';
+  int? _categoryId;
 
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productsProvider);
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     final cart = ref.watch(cartProvider);
     final total = ref.watch(cartTotalProvider);
 
@@ -51,6 +53,34 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               onChanged: (v) => setState(() => _query = v.toLowerCase()),
             ),
           ),
+          if (categories.isNotEmpty)
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: const Text('Barchasi'),
+                      selected: _categoryId == null,
+                      onSelected: (_) => setState(() => _categoryId = null),
+                    ),
+                  ),
+                  for (final c in categories)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(c.name),
+                        selected: _categoryId == c.id,
+                        onSelected: (_) => setState(() => _categoryId = c.id),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
           Expanded(
             child: productsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -59,7 +89,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               data: (products) {
                 final filtered = products
                     .where((p) =>
-                        p.isActive && p.name.toLowerCase().contains(_query))
+                        p.isActive &&
+                        p.name.toLowerCase().contains(_query) &&
+                        (_categoryId == null || p.categoryId == _categoryId))
                     .toList();
                 if (filtered.isEmpty) {
                   return const EmptyState(

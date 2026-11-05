@@ -100,5 +100,21 @@ String _dayKey(DateTime d) =>
 final dashboardExtrasProvider = Provider((ref) {
   final lowStock = ref.watch(lowStockProvider);
   final totalDebt = ref.watch(totalDebtProvider);
-  return (lowStock: lowStock, totalDebt: totalDebt);
+
+  // Joriy tovar qoldig'ining umumiy summasi: kirim (tannarx) va sotish narxida.
+  final products = ref.watch(productsProvider).valueOrNull ?? [];
+  var stockCost = 0.0;
+  var stockRetail = 0.0;
+  for (final p in products) {
+    if (p.stock > 0) {
+      stockCost += p.stock * p.buyPrice;
+      stockRetail += p.stock * p.sellPrice;
+    }
+  }
+  return (
+    lowStock: lowStock,
+    totalDebt: totalDebt,
+    stockCost: stockCost,
+    stockRetail: stockRetail,
+  );
 });
