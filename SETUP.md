@@ -118,15 +118,24 @@ o'rnatishga to'g'ri keladi.
 ### Yangi versiya chiqarish (Android avto-yangilanish)
 Ilova ochilganda GitHub Releases'dagi so'nggi relizni tekshiradi va yangisi
 bo'lsa yangilashni taklif qiladi (Sozlamalar -> Ilova'dan qo'lda ham tekshirish
-mumkin).
-1. `app/pubspec.yaml`da `version`ni oshiring (masalan `1.1.3+5`).
+mumkin). To'liq APK 100+ MB, shuning uchun reliz **patch** ham o'z ichiga oladi:
+o'rnatilgan APK bilan yangisi orasidagi farq (odatda 4-6 MB). Telefon patchni
+yuklab, o'rnatilgan APK'ga qo'llab yangi APK yasaydi va hash'ini tekshiradi;
+biror narsa mos kelmasa, avtomatik to'liq APK yuklanadi.
+1. `app/pubspec.yaml`da `version`ni oshiring (masalan `1.3.2+14`).
 2. `flutter build apk --release`, so'ng `app-release.apk`ni loyiha ildizidagi
    `ustun-dokon.apk`ga ko'chiring.
 3. O'zgarishlarni commit + push qiling.
-4. Reliz yarating (teg `v` + versiya, fayl nomi aynan `ustun-dokon.apk`):
+4. Reliz skriptini ishga tushiring (bir martalik: `pip install bsdiff4`):
    ```powershell
-   gh release create v1.1.3 ustun-dokon.apk --repo abdurakmgofurov-Pro/Ustun-Dokon --target main --title "Ustun Do'kon 1.1.3" --notes "Nima o'zgardi"
+   python tools/release.py --notes "Nima o'zgardi"
    ```
+   Skript oldingi reliz APK'sini yuklaydi, patch yaratadi, uni ilovadagi Dart kodi
+   bilan tekshiradi (bayt-bayt mosligini), `update.json` yozadi va relizni
+   chiqaradi (`--dry-run` — yuklamasdan faqat tayyorlash).
+Patch faqat oldingi reliz (yoki `--from 1.3.0 1.3.1`) o'rnatilgan telefonlar
+uchun; boshqalar to'liq APK yuklaydi. Reliz fayllari: `ustun-dokon.apk` (to'liq),
+`update.json`, `patch-<eski>-to-<yangi>.bin`.
 Avto-yangilanish faqat Android'da; iOS'da Sideloadly orqali qo'lda o'rnatiladi.
 
 ### iOS (ixtiyoriy)

@@ -108,11 +108,24 @@ class _UpdateDialog extends StatefulWidget {
 class _UpdateDialogState extends State<_UpdateDialog> {
   bool _downloading = false;
   double _progress = 0;
+  String? _status;
   String? _error;
+
+  static String _mb(int bytes) => '${(bytes / 1000000).toStringAsFixed(1)} MB';
+
+  String _sizeLine() {
+    final u = widget.update;
+    if (u.hasPatch) {
+      return "Faqat o'zgargan qism yuklanadi: ${_mb(u.patchSize)} "
+          "(to'liq fayl ${_mb(u.apkSize)})";
+    }
+    return u.apkSize > 0 ? "Yuklanadi: ${_mb(u.apkSize)}" : '';
+  }
 
   Future<void> _install() async {
     setState(() {
       _downloading = true;
+      _status = null;
       _error = null;
     });
     try {
@@ -120,6 +133,9 @@ class _UpdateDialogState extends State<_UpdateDialog> {
         widget.update,
         onProgress: (p) {
           if (mounted) setState(() => _progress = p);
+        },
+        onStatus: (s) {
+          if (mounted) setState(() => _status = s);
         },
       );
       if (mounted) Navigator.of(context).pop();
@@ -144,9 +160,22 @@ class _UpdateDialogState extends State<_UpdateDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (notes.isNotEmpty) Text(notes),
+          if (_sizeLine().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(_sizeLine(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6))),
+          ],
           if (_downloading) ...[
             const SizedBox(height: 16),
             LinearProgressIndicator(value: _progress > 0 ? _progress : null),
+            if (_status != null) ...[
+              const SizedBox(height: 8),
+              Text(_status!, style: Theme.of(context).textTheme.bodySmall),
+            ],
           ],
           if (_error != null) ...[
             const SizedBox(height: 12),
